@@ -14,6 +14,8 @@ class DirectedGraph():
         return vertex in self.vertices 
     def add_edge(self, a, b):
         edge = (a,b)
+        if edge in self.edges:
+            return
         assert(a in self.vertices)
         assert(b in self.vertices)
         self.edges.add(edge)
@@ -59,6 +61,10 @@ class DirectedGraph():
         cycle = self.dfs(v,v)
         self.reverse()
         return bool(cycle)
+    def is_root(self, v):
+        return not bool(self.backward[v])
+    def roots(self):
+        return set(v for v in self.vertices if self.is_root(v))
     def is_leaf(self, v):
         return not bool(self.forward[v])
     def leaves(self):
