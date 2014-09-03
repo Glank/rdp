@@ -100,12 +100,13 @@ class Rule:
 class Grammar:
     def __init__(self, rules=None, start=Symbol('S')):
         self.start = start
-        if not rules:
+        if rules is None:
             rules = []
-        self.rules = set(rules)
+        self.rules = rules[:]
         assert(isinstance(rules, list))
     def add(self, rule):
-        self.rules.add(rule)
+        if rule not in self.rules:
+            self.rules.append(rule)
     def remove(self, rule):
         self.rules.remove(rule)
     def is_parseable(self, with_manipulation=False):
@@ -228,7 +229,7 @@ class Grammar:
                 if self.__remove_left_recursion__(symbol):
                     removed+= 1
         return removed
-    def try_improving(self):
+    def try_compiling(self):
         functs = [
             self.try_removing_useless_rules,
             self.try_removing_left_recursion,
@@ -240,11 +241,11 @@ class Grammar:
             if improved>0:
                 return improved
         return 0
-    def improve(self):
-        improved = self.try_improving()
+    def compile(self):
+        improved = self.try_compiling()
         total = improved
         while improved:
-            improved = self.try_improving()
+            improved = self.try_compiling()
             total+= improved
         return total
     def __str__(self):
@@ -322,8 +323,8 @@ def recursion_test():
     print gram
     print
 
-def improvement_test():
-    print "Improvement test."
+def compilation_test():
+    print "Compilation test."
     S = Symbol('S')
     A = Symbol('A')
     B = Symbol('B')
@@ -340,7 +341,7 @@ def improvement_test():
     print gram
     print gram.is_parseable()
     print '*'*10
-    print gram.improve()
+    print gram.compile()
     print '*'*10
     print gram
     print gram.is_parseable()
@@ -351,4 +352,4 @@ if __name__=='__main__':
     #substitute_test()
     #useless_test()
     #recursion_test()
-    improvement_test()
+    compilation_test()
