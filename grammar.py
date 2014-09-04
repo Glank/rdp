@@ -1,24 +1,6 @@
-#!/usr/bin/python
 # -*- coding: latin-1 -*-
 
 from finite_graph import DirectedGraph
-class ParsingStream:
-    def __init__(self, elems):
-        self.elems = elems
-        self.index = 0
-        self.stack = []
-    def has_next(self):
-        return self.index<len(self.elems)
-    def peek(self):
-        return self.elems[self.index]
-    def pop(self):
-        self.index+=1
-        return self.elems[self.index-1]
-    def mark(self):
-        self.stack.append(self.index)
-    def revert(self):
-        assert(self.stack)
-        self.index = self.stack.pop()
 
 class Symbol:
     def __init__(self, name):
@@ -40,6 +22,10 @@ class TerminalSymbol(Symbol):
     def __init__(self, name):
         Symbol.__init__(self, name)
     def try_consume(self, stream):
+        """Tries to consume self from the stream, returns
+        False if not consumed or the number of elements from
+        the stream consumed (any non-negative) and advances
+        the stream's index."""
         raise NotImplementedError()
     def __repr__(self):
         return 'TerminalSymbol(%r)'%self.name
@@ -50,7 +36,7 @@ class Epsilon(TerminalSymbol):
     def __init__(self):
         Symbol.__init__(self, '__epsilon__')
     def try_consume(self, stream):
-        return True
+        return 0
     def __repr__(self):
         return "Epsilon()"
     def __str__(self):
@@ -103,12 +89,18 @@ class Grammar:
         if rules is None:
             rules = []
         self.rules = rules[:]
+        self.rules_by_head_map = None
+        self.reverse_lookup_map = None
         assert(isinstance(rules, list))
     def add(self, rule):
         if rule not in self.rules:
             self.rules.append(rule)
     def remove(self, rule):
         self.rules.remove(rule)
+    def index(self, rule):
+        if self.reverse_lookup_map is None:
+            return self.rules.index(rule)
+        return self.reverse_lookup_map[rule]
     def is_parseable(self, with_manipulation=False):
         pdg = DirectedGraph() #parse decision graph
         for rule in self.rules:
@@ -124,7 +116,9 @@ class Grammar:
                 return False
         return True
     def rules_by_head(self, head):
-        return (r for r in self.rules if r.head==head)
+        if self.rules_by_head_map is not None:
+            return self.rules_by_head_map[head]
+        return [r for r in self.rules if r.head==head]
     def unique_symbols(self):
         returned = set()
         for rule in self.rules:
@@ -141,7 +135,7 @@ class Grammar:
             nt = Symbol('_%s%d'%(prefix,i))
         return nt
     def __factor__(self, head):
-        rules = list(self.rules_by_head(head))
+        rules = self.rules_by_head(head)
         if len(rules)<=1:
             return False
         common_prefix = rules[0].tail[:]
@@ -162,7 +156,7 @@ class Grammar:
         return False
     def try_factoring(self):
         factored = 0
-        for symbol in list(self.unique_symbols()):
+        for symbol in self.unique_symbols():
             if not symbol.is_terminal():
                 if self.__factor__(symbol):
                     factored+= 1
@@ -181,7 +175,7 @@ class Grammar:
             self.add(Rule(a,beta+alpha))
         return True
     def try_substituting(self):
-        for rule in list(self.rules):
+        for rule in self.rules:
             if self.__substitute__(rule):
                 return 1
         return 0
@@ -197,13 +191,13 @@ class Grammar:
         removed = 0
         for root in gen_graph.roots():
             if root!=self.start:
-                to_del = list(self.rules_by_head(root))
+                to_del = self.rules_by_head(root)
                 for rule in to_del:
                     self.remove(rule)
                     removed+=1
         return removed
     def __remove_left_recursion__(self, head):
-        rules = list(self.rules_by_head(head))
+        rules = self.rules_by_head(head)
         betas = []
         alphas = []
         for rule in rules:
@@ -241,115 +235,25 @@ class Grammar:
             if improved>0:
                 return improved
         return 0
+    def compile_rbhm(self):
+        self.rules_by_head_map = {}
+        for rule in self.rules:
+            corules = self.rules_by_head_map.get(rule.head, [])        
+            corules.append(rule)
+            self.rules_by_head_map[rule.head] = corules
+    def compile_rlm(self):
+        self.reverse_lookup_map = {}
+        for i, rule in enumerate(self.rules):
+            self.reverse_lookup_map[rule] = i
     def compile(self):
         improved = self.try_compiling()
         total = improved
         while improved:
             improved = self.try_compiling()
             total+= improved
+        self.compile_rbhm()
+        self.compile_rlm()
         return total
     def __str__(self):
-        return '\n'.join(str(r) for r in self.rules)
+        return '\n'.join('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))
 
-def factor_test():
-    print "Factoring test..."
-    s = Symbol('S')
-    a = TerminalSymbol('a')
-    b = TerminalSymbol('b')
-    c = TerminalSymbol('c')
-    rules = [
-        Rule(s, [a,b]),
-        Rule(s, [a,c]),
-    ]
-    gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_factoring()
-    print '*'*10
-    print gram
-    print
-
-def substitute_test():
-    print "Substitution test..."
-    s = Symbol('S')
-    n = Symbol('N')
-    a = TerminalSymbol('a')
-    b = TerminalSymbol('b')
-    c = TerminalSymbol('c')
-    rules = [
-        Rule(s, [n,c]),
-        Rule(n, [a]),
-        Rule(n, [b]),
-    ]
-    gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_substituting()
-    print '*'*10
-    print gram
-    print
-
-def useless_test():
-    print "Remove Useless test..."
-    s = Symbol('S')
-    n = Symbol('N')
-    a = TerminalSymbol('a')
-    b = TerminalSymbol('b')
-    rules = [
-        Rule(s, [a]),
-        Rule(n, [b])
-    ]
-    gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_removing_useless_rules()
-    print '*'*10
-    print gram
-    print
-
-def recursion_test():
-    print "Remove left recursion test..."
-    s = Symbol('S')
-    a = TerminalSymbol('a')
-    rules = [
-        Rule(s, [a]),
-        Rule(s, [s,a])
-    ]
-    gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_removing_left_recursion()
-    print '*'*10
-    print gram
-    print
-
-def compilation_test():
-    print "Compilation test."
-    S = Symbol('S')
-    A = Symbol('A')
-    B = Symbol('B')
-    a = TerminalSymbol('a')
-    b = TerminalSymbol('b')
-    rules = [
-        Rule(S, [A,B]),
-        Rule(A, [a]),
-        Rule(A, [S,A]),
-        Rule(B, [b]),
-        Rule(B, [S,B]),
-    ]
-    gram = Grammar(rules)
-    print gram
-    print gram.is_parseable()
-    print '*'*10
-    print gram.compile()
-    print '*'*10
-    print gram
-    print gram.is_parseable()
-    print
-
-if __name__=='__main__':
-    #factor_test()
-    #substitute_test()
-    #useless_test()
-    #recursion_test()
-    compilation_test()
