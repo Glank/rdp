@@ -1,6 +1,25 @@
 from grammar import *
+from streams import *
+from terms import *
 from rdparse import *
 import os.path
+
+def repeat_term_test():
+    yield "Repeat term test..."
+    S = Symbol('S')
+    a = StringTerminal('a')
+    b = StringTerminal('b')
+    a_ = RepeatTerminal(a,2,3)
+    rules = [
+        Rule(S, [b, a_]),
+    ]
+    gram = Grammar(rules)
+    stream = StringStream('baaaa')
+    yield gram
+    yield stream
+    parser = RDParser(stream, gram)
+    yield parser.parse_partial()
+    yield str(parser)
 
 def factor_test():
     yield "Factoring test..."
@@ -291,6 +310,7 @@ if __name__=='__main__':
         unremove_test,
         redolr_test,
         simple_rdp_test,
+        repeat_term_test,
     ]
     for test in tests:
         results = "\n".join(str(o) for o in test())

@@ -1,49 +1,7 @@
 # -*- coding: latin-1 -*-
 
 from grammar import *
-
-class ParsingStream:
-    def reset(self):
-        """Resets the stream to the very beginning."""
-        raise NotImplementedError()
-    def advance(self, amount):
-        """Advances the stream. Returns <amount>
-        elements that were passed."""
-        raise NotImplementedError()
-    def backtrack(self, amount):
-        """Goes backwards in the stream <amount> elements.
-        Calling s.advance(a) then s.backtrack(a) should
-        result in the s being exactly the same."""
-        raise NotImplementedError()
-
-class StringStream(ParsingStream):
-    def __init__(self, string):
-        self.string = string
-        self.index = 0
-    def has(self, word):
-        if (self.index+len(word))>len(self.string):
-            return False
-        return self.string[self.index:].startswith(word)
-    def advance(self, amount):
-        self.index+=amount
-        assert(self.index<=len(self.string))
-        return self.string[self.index-amount:self.index]
-    def backtrack(self, amount):  
-        self.index-=amount
-        assert(self.index>=0)
-    def finished(self):
-        return self.index==len(self.string)
-    def reset(self):
-        self.index = 0
-    def __str__(self):
-        return self.string
-
-class StringTerminal(TerminalSymbol):
-    def try_consume(self, stream):
-        assert(isinstance(stream, StringStream))
-        if stream.has(self.name):
-            return [len(self.name)]
-        return False
+from streams import ParsingStream
 
 class RDParser:
     def __init__(self, stream, grammar):
@@ -52,7 +10,7 @@ class RDParser:
         self.parsed_stack = []
         self.stream = stream
         self.grammar = grammar
-        self.state = 'unparsed'
+        self.parsed_terminals = 0
     def __advance__(self):
         if not self.todo_stack:
             return False
@@ -73,6 +31,7 @@ class RDParser:
             n = consume.next()
             self.stream.advance(n)
             self.parsed_stack.append((terminal, (n,consume)))
+            self.parsed_terminals+=1
             return True
         else:
             try:
@@ -83,6 +42,7 @@ class RDParser:
                 self.parsed_stack.append((terminal, (n,consume)))
                 return True
             except StopIteration:
+                self.parsed_terminals-=1
                 return self.__backtrack__()
     def __advance_nonterminal__(self, head, rule_index):
         if rule_index is None:
@@ -105,38 +65,35 @@ class RDParser:
         if not self.__advance__():
             return self.__backtrack__()
         return True
-    def parse_partial(self):
-        assert(self.state=='unparsed')
-        while self.todo_stack:
+    def parse_all(self):
+        """An iterater that yields this parser for each possible 
+        interpretation under the grammar."""
+        while True:
+            while self.todo_stack:
+                if not self.__iterate__():
+                    return
+            yield self
             if not self.__iterate__():
-                self.state = 'invalid'
-                return False
-        self.state = 'parsed'
-        return True
-    def parse_full(self):
-        return self.parse_filtered(is_match=lambda s:s.stream.finished())
+                return
     def parse_filtered(self, is_match):
-        """is_match should be a function or lambda that this parser
+        """Returns true if a parse state that fits is_match is reached.
+        is_match should be a function or lambda that this parser
         and returns True for valid matches and False for invalid ones.
         This is useful for parsing mildly context-sensitive grammars.
         """
-        assert(self.state=='unparsed')
-        self.state = 'parsing'
-        matches = False
-        while not matches:
-            while self.todo_stack:
-                if not self.__iterate__():
-                    self.state = 'invalid'
-                    return False
-            _,terms = self.get_generation_lists()
-            matches = is_match(self)
-            if not matches and not self.__iterate__():
-                self.state = 'invalid'
-                return False
-        self.state = 'parsed'
-        return True
+        for this in self.parse_all():
+            if is_match(this):
+                return True
+        return False
+    def parse_partial(self):
+        try:
+            iter(self.parse_all()).next()
+            return True
+        except StopIteration:
+            return False
+    def parse_full(self):
+        return self.parse_filtered(is_match=lambda s:s.stream.finished())
     def get_generation_lists(self):
-        assert(self.state=='parsed' or self.state=='parsing')
         decision_list = []
         term_instances = []
         self.stream.reset()
@@ -159,4 +116,3 @@ class RDParser:
         ret+= "["+",".join(tostr(*t) for t in self.parsed_stack)+"] "
         ret+= str(self.stream.index)
         return ret
-
