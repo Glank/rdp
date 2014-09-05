@@ -1,8 +1,9 @@
 from grammar import *
 from rdparse import *
+import os.path
 
 def factor_test():
-    print "Factoring test..."
+    yield "Factoring test..."
     s = Symbol('S')
     a = TerminalSymbol('a')
     b = TerminalSymbol('b')
@@ -12,15 +13,14 @@ def factor_test():
         Rule(s, [a,c]),
     ]
     gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_factoring()
-    print '*'*10
-    print gram
-    print
+    yield gram
+    yield '*'*10
+    yield gram.try_factoring()
+    yield '*'*10
+    yield gram
 
 def substitute_test():
-    print "Substitution test..."
+    yield "Substitution test..."
     s = Symbol('S')
     n = Symbol('N')
     a = TerminalSymbol('a')
@@ -32,15 +32,14 @@ def substitute_test():
         Rule(n, [b]),
     ]
     gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_substituting()
-    print '*'*10
-    print gram
-    print
+    yield gram
+    yield '*'*10
+    yield gram.try_substituting()
+    yield '*'*10
+    yield gram
 
 def useless_test():
-    print "Remove Useless test..."
+    yield "Remove Useless test..."
     s = Symbol('S')
     n = Symbol('N')
     a = TerminalSymbol('a')
@@ -50,15 +49,14 @@ def useless_test():
         Rule(n, [b])
     ]
     gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_removing_useless_rules()
-    print '*'*10
-    print gram
-    print
+    yield gram
+    yield '*'*10
+    yield gram.try_removing_useless_rules()
+    yield '*'*10
+    yield gram
 
 def recursion_test():
-    print "Remove left recursion test..."
+    yield "Remove left recursion test..."
     s = Symbol('S')
     a = TerminalSymbol('a')
     rules = [
@@ -66,15 +64,14 @@ def recursion_test():
         Rule(s, [s,a])
     ]
     gram = Grammar(rules)
-    print gram
-    print '*'*10
-    print gram.try_removing_left_recursion()
-    print '*'*10
-    print gram
-    print
+    yield gram
+    yield '*'*10
+    yield gram.try_removing_left_recursion()
+    yield '*'*10
+    yield gram
 
 def compilation_test():
-    print "Compilation test."
+    yield "Compilation test."
     S = Symbol('S')
     A = Symbol('A')
     B = Symbol('B')
@@ -88,17 +85,16 @@ def compilation_test():
         Rule(B, [S,B]),
     ]
     gram = Grammar(rules)
-    print gram
-    print gram.is_parseable()
-    print '*'*10
-    print gram.compile()
-    print '*'*10
-    print gram
-    print gram.is_parseable()
-    print
+    yield gram
+    yield gram.is_parseable()
+    yield '*'*10
+    yield gram.compile()
+    yield '*'*10
+    yield gram
+    yield gram.is_parseable()
 
 def rdp_test():
-    print "RDP Test."
+    yield "RDP Test."
     S = Symbol('S')
     A = Symbol('A')
     B = Symbol('B')
@@ -114,23 +110,23 @@ def rdp_test():
     grammar.compile()
     #grammer.compile_rbhm()
     #grammer.compile_rlm()
-    print grammar
+    yield grammar
     stream = StringStream('ababa')
-    print stream
+    yield stream
     parser = RDParser(stream, grammar)
-    print parser
+    yield parser
     def is_match(parser):
        return parser.stream.index>=3
-    print parser.parse_filtered(is_match)
-    print parser
+    yield parser.parse_filtered(is_match)
+    yield parser
     decs, terms = parser.get_generation_lists()
-    print decs
+    yield decs
     rec = "".join(terms)
-    print rec
+    yield rec
     assert stream.string.startswith(rec)
 
 def unfactor_test():
-    print "Unfactor Test."
+    yield "Unfactor Test."
     S = Symbol('S')
     a = StringTerminal('a')
     b = StringTerminal('b')
@@ -140,18 +136,18 @@ def unfactor_test():
         Rule(S, [a,c]),
     ]
     gram = Grammar(rules)
-    print "Parent Grammar:"
-    print gram
+    yield "Parent Grammar:"
+    yield gram
     assert(gram.try_factoring())
-    print "Factored Grammar:"
-    print gram
-    print "Reversions:"
+    yield "Factored Grammar:"
+    yield gram
+    yield "Reversions:"
     for test in [[2,0],[2,1]]:
         parent_v = gram.transform_to_parent(test)
-        print "%s -> %s"%(str(test), str(parent_v))
+        yield "%s -> %s"%(str(test), str(parent_v))
 
 def resubstitute_test():
-    print "Resubstitute Test."
+    yield "Resubstitute Test."
     S = Symbol('S')
     N = Symbol('N')
     a = StringTerminal('a')
@@ -163,18 +159,18 @@ def resubstitute_test():
         Rule(N, [b]),
     ]
     gram = Grammar(rules)
-    print "Parent Grammar:"
-    print gram
+    yield "Parent Grammar:"
+    yield gram
     assert(gram.try_substituting())
-    print "Factored Grammar:"
-    print gram
-    print "Reversions:"
+    yield "Factored Grammar:"
+    yield gram
+    yield "Reversions:"
     for test in [[2],[3]]:
         parent_v = gram.transform_to_parent(test)
-        print "%s -> %s"%(str(test), str(parent_v))
+        yield "%s -> %s"%(str(test), str(parent_v))
 
 def resubstitute_test():
-    print "Resubstitute Test."
+    yield "Resubstitute Test."
     S = Symbol('S')
     N = Symbol('N')
     a = StringTerminal('a')
@@ -186,18 +182,18 @@ def resubstitute_test():
         Rule(N, [b]),
     ]
     gram = Grammar(rules)
-    print "Parent Grammar:"
-    print gram
+    yield "Parent Grammar:"
+    yield gram
     assert(gram.try_substituting())
-    print "Substituted Grammar:"
-    print gram
-    print "Reversions:"
+    yield "Substituted Grammar:"
+    yield gram
+    yield "Reversions:"
     for test in [[2],[3]]:
         parent_v = gram.transform_to_parent(test)
-        print "%s -> %s"%(str(test), str(parent_v))
+        yield "%s -> %s"%(str(test), str(parent_v))
 
 def unremove_test():
-    print "Unremove Test."
+    yield "Unremove Test."
     S = Symbol('S')
     A = Symbol('A')
     B = Symbol('B')
@@ -212,18 +208,18 @@ def unremove_test():
         Rule(B, []),
     ]
     gram = Grammar(rules)
-    print "Parent Grammar:"
-    print gram
+    yield "Parent Grammar:"
+    yield gram
     assert(gram.try_removing_useless_rules())
-    print "Cleaned Grammar:"
-    print gram
-    print "Reversions:"
+    yield "Cleaned Grammar:"
+    yield gram
+    yield "Reversions:"
     for test in [[0,1,1,2],[0,2]]:
         parent_v = gram.transform_to_parent(test)
-        print "%s -> %s"%(str(test), str(parent_v))
+        yield "%s -> %s"%(str(test), str(parent_v))
 
 def redolr_test():
-    print "Redo Left Recursion Test."
+    yield "Redo Left Recursion Test."
     S = Symbol('S')
     a1 = Symbol('a1')
     a2 = Symbol('a2')
@@ -236,24 +232,77 @@ def redolr_test():
         Rule(S, [a1]),
     ]
     gram = Grammar(rules)
-    print "Parent Grammar:"
-    print gram
+    yield "Parent Grammar:"
+    yield gram
     assert(gram.try_removing_left_recursion())
-    print "No Left Recursion Grammar:"
-    print gram
-    print "Reversions:"
+    yield "No Left Recursion Grammar:"
+    yield gram
+    yield "Reversions:"
     for test in [[3,0,0,2,4],[1,2,0,4]]:
         parent_v = gram.transform_to_parent(test)
-        print "%s -> %s"%(str(test), str(parent_v))
+        yield "%s -> %s"%(str(test), str(parent_v))
+
+def simple_rdp_test():
+    yield "Simple RDP Test."
+    S = Symbol('S')
+    A = Symbol('A')
+    a = StringTerminal('a')
+    rules = [
+        Rule(S, [a,A]),
+        Rule(A, []),
+        Rule(A, [a]),
+    ]
+    grammar = Grammar(rules)
+    grammar.compile()
+    #grammer.compile_rbhm()
+    #grammer.compile_rlm()
+    yield grammar
+    stream = StringStream('aa')
+    yield stream
+    parser = RDParser(stream, grammar)
+    yield parser
+    yield parser.parse_full()
+    yield parser
+
+def try_get_file(name):
+    if os.path.isfile(name):
+        with open(name,'r') as f:
+            return f.read()
+    return None
+
+def ask_yn(question):
+    answer = None
+    while answer not in ['y','n','yes','no']:
+        print question
+        answer = raw_input().lower()
+    return answer in ['y','yes']
 
 if __name__=='__main__':
-    #factor_test()
-    #substitute_test()
-    #useless_test()
-    #recursion_test()
-    #compilation_test()
-    #rdp_test()
-    #unfactor_test()
-    #resubstitute_test()
-    #unremove_test()
-    redolr_test()
+    test_dir = 'test_results'
+    tests = [
+        factor_test,
+        substitute_test,
+        useless_test,
+        recursion_test,
+        compilation_test,
+        rdp_test,
+        unfactor_test,
+        resubstitute_test,
+        unremove_test,
+        redolr_test,
+        simple_rdp_test,
+    ]
+    for test in tests:
+        results = "\n".join(str(o) for o in test())
+        fn = test_dir+'/'+test.__name__
+        old_results = try_get_file(fn)
+        if old_results != results:
+            print "!!! Old test results do not match current results: !!!"
+            print results
+            if ask_yn("Is this new output valid? (y/n)"):
+                with open(fn,'w') as f:
+                    f.write(results)
+            else:
+                print "Test failed."
+                exit()
+    print "All tests passed!"

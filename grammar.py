@@ -25,18 +25,23 @@ class TerminalSymbol(Symbol):
     def __init__(self, name):
         Symbol.__init__(self, name)
     def try_consume(self, stream):
-        """Tries to consume self from the stream, returns
-        False if not consumed or the number of elements from
-        the stream consumed (any non-negative) and advances
-        the stream's index."""
+        """Tries to consume self from the stream.
+        Returns False if not consumable.
+        Else, returns an iterable object that yields the the length
+        of each possible interpretation of this terminal
+        given the input stream's current position.
+        The iterable may store reference to the stream and assume
+        that calls to next(self) will come only at times when the stream
+        is in the same initial position when this try_consume
+        method was called."""
         raise NotImplementedError()
     def __repr__(self):
         return 'TerminalSymbol(%r)'%self.name
     def __str__(self):
         return "'%s'"%self.name
     def get_instance(self):
-        """If the grammar is generative, this method should
-        return an instance of elements of a parse stream that
+        """Optional: If the grammar is generative, this method should
+        return the instance of elements of a parse stream that
         correspond to this terminal."""
         raise NotImplementedError()
 
@@ -44,7 +49,7 @@ class Epsilon(TerminalSymbol):
     def __init__(self):
         Symbol.__init__(self, '__epsilon__')
     def try_consume(self, stream):
-        return 0
+        return [0]
     def __repr__(self):
         return "Epsilon()"
     def __str__(self):

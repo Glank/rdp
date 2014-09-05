@@ -1,0 +1,14 @@
+Unremove Test.
+Parent Grammar:
+0)	S -> 'a' A
+1)	B -> 'b'
+2)	A -> 'a' A
+3)	A -> ε
+4)	B -> ε
+Cleaned Grammar:
+0)	S -> 'a' A
+1)	A -> 'a' A
+2)	A -> ε
+Reversions:
+[0, 1, 1, 2] -> [0, 2, 2, 3]
+[0, 2] -> [0, 3]

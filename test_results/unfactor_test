@@ -1,0 +1,11 @@
+Unfactor Test.
+Parent Grammar:
+0)	S -> 'a' 'b'
+1)	S -> 'a' 'c'
+Factored Grammar:
+0)	_0 -> 'b'
+1)	_0 -> 'c'
+2)	S -> 'a' _0
+Reversions:
+[2, 0] -> [0]
+[2, 1] -> [1]
