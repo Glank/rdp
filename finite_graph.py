@@ -61,6 +61,19 @@ class DirectedGraph():
         cycle = self.dfs(v,v)
         self.reverse()
         return bool(cycle)
+    def get_reachable(self, start):
+        reached = set([start])
+        to_search = [start]
+        while to_search:
+            cur = to_search.pop()
+            for n in self.forward[cur]:
+                if n not in reached:
+                    to_search.append(n)
+                    reached.add(n)
+        return reached
+    def get_unreachable(self, start):
+        reachable = self.get_reachable(start)
+        return set(v for v in self.vertices if v not in reachable)
     def is_root(self, v):
         return not bool(self.backward[v])
     def roots(self):

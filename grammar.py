@@ -1,6 +1,9 @@
 # -*- coding: latin-1 -*-
 
 from finite_graph import DirectedGraph
+from copy import deepcopy
+from bisect import bisect
+from itertools import izip
 
 class Symbol:
     def __init__(self, name):
@@ -31,6 +34,11 @@ class TerminalSymbol(Symbol):
         return 'TerminalSymbol(%r)'%self.name
     def __str__(self):
         return "'%s'"%self.name
+    def get_instance(self):
+        """If the grammar is generative, this method should
+        return an instance of elements of a parse stream that
+        correspond to this terminal."""
+        raise NotImplementedError()
 
 class Epsilon(TerminalSymbol):
     def __init__(self):
@@ -83,20 +91,82 @@ class Rule:
     def __hash__(self):
         return self.__h__
 
+class DecListTransform:
+    def transform(self, dec_list):
+        """Takes a decision list, and returns a transformd decision list."""
+        raise NotImplementedError()
+
+class Unfactor(DecListTransform):
+    def __init__(self, added_index):
+        #assumes added_index is the max index
+        self.added_index = added_index
+    def transform(self, dec_list):
+        return [i for i in dec_list if i!=self.added_index]
+
+class Resubstitute(DecListTransform):
+    def __init__(self, removed_index, subed_indexes, added_start):
+        self.removed_index = removed_index
+        self.subed_indexes = subed_indexes
+        self.added_start = added_start
+    def transform(self, dec_list):
+        def iter():
+            for i in dec_list:
+                if i>=self.added_start:
+                    yield self.removed_index
+                    yield self.subed_indexes[i-self.added_start]
+                    continue
+                if i>=self.removed_index:
+                    i+=1
+                yield i
+        return list(iter())
+
+class Unremove(DecListTransform):
+    def __init__(self, removed_indexes):
+        self.removed_indexes = sorted(removed_indexes)
+    def transform(self, dec_list):
+        def iter():
+            for i in dec_list:
+                removed_before = bisect(self.removed_indexes, i)
+                yield i+removed_before
+        return list(iter())
+
+class RedoLeftRecursion(DecListTransform):
+    def __init__(self, added_index, alpha_indexes):
+        #assumes added_index is the max index
+        self.added_index = added_index
+        self.alpha_indexes = set(alpha_indexes)
+    def transform(self, dec_list):
+        def iter():
+            rec_stack = None
+            for i in dec_list:
+                if i in self.alpha_indexes:
+                    rec_stack = [i]
+                elif rec_stack is None:
+                    yield i
+                else:
+                    if i!=self.added_index:
+                        rec_stack.append(i)
+                    else:
+                        while rec_stack:
+                            yield rec_stack.pop()
+                        rec_stack = None
+        return list(iter())
+
 class Grammar:
     def __init__(self, rules=None, start=Symbol('S')):
-        self.start = start
         if rules is None:
             rules = []
+        assert(isinstance(rules, list))
+        assert(isinstance(start, Symbol))
+        self.start = start
         self.rules = rules[:]
         self.rules_by_head_map = None
         self.reverse_lookup_map = None
-        assert(isinstance(rules, list))
-    def add(self, rule):
-        if rule not in self.rules:
-            self.rules.append(rule)
-    def remove(self, rule):
-        self.rules.remove(rule)
+        #the weekly-equivalent pre-compile grammar
+        self.parent = None 
+        #rules for converting a decision list from this grammar
+        #into a weekly-equivalent one for the parent grammar
+        self.to_parent_transforms = None 
     def index(self, rule):
         if self.reverse_lookup_map is None:
             return self.rules.index(rule)
@@ -126,6 +196,10 @@ class Grammar:
                 if s not in returned:
                     yield s
                     returned.add(s)
+    def __assert_parent__(self):
+        if self.parent is None:
+            self.parent = deepcopy(self)
+            self.to_parent_transforms = []
     def __gen_nonterminal__(self, prefix=''):
         i = 0
         unique = set(self.unique_symbols())
@@ -146,12 +220,16 @@ class Grammar:
                 i+=1
             del common_prefix[i:]
         if common_prefix:
+            #looks like it needs factoring
+            self.__assert_parent__()
             end = len(common_prefix)
             z = self.__gen_nonterminal__()
-            self.add(Rule(head, common_prefix+[z]))
             for rule in rules:
-                self.remove(rule)
-                self.add(Rule(z, rule.tail[end:]))
+                i = self.index(rule)
+                self.rules[i] = Rule(z, rule.tail[end:])
+            added_index = len(self.rules)
+            self.rules.append(Rule(head, common_prefix+[z]))
+            self.to_parent_transforms.append(Unfactor(added_index))
             return True
         return False
     def try_factoring(self):
@@ -167,12 +245,20 @@ class Grammar:
             return False
         if not alpha:
             return False
-        betas = [r.tail for r in self.rules_by_head(b)]
-        if not betas:
+        subed_rules = self.rules_by_head(b)
+        if not subed_rules:
             return False
-        self.remove(rule)
+        #needs substitution
+        self.__assert_parent__()
+        betas = [r.tail for r in self.rules_by_head(b)]
+        subed_indexes = [self.index(r) for r in subed_rules]
+        removed_index = self.index(rule)
+        del self.rules[removed_index]
+        added_start = len(self.rules)
         for beta in betas:
-            self.add(Rule(a,beta+alpha))
+            self.rules.append(Rule(a,beta+alpha))
+        resubstitute = Resubstitute(removed_index, subed_indexes, added_start)
+        self.to_parent_transforms.append(resubstitute)
         return True
     def try_substituting(self):
         for rule in self.rules:
@@ -188,33 +274,49 @@ class Grammar:
             for symbol in rule.tail:
                 if not symbol.is_terminal():
                     gen_graph.add_edge(rule.head, symbol)
-        removed = 0
-        for root in gen_graph.roots():
-            if root!=self.start:
-                to_del = self.rules_by_head(root)
-                for rule in to_del:
-                    self.remove(rule)
-                    removed+=1
-        return removed
+        removed = []
+        for s in gen_graph.get_unreachable(self.start):
+            to_del = self.rules_by_head(s)
+            for rule in to_del:
+                i = self.index(rule)
+                removed.append(i)
+                del self.rules[i]
+        if removed:
+            self.__assert_parent__()
+            self.to_parent_transforms.append(Unremove(removed))
+        return len(removed)
     def __remove_left_recursion__(self, head):
         rules = self.rules_by_head(head)
         betas = []
         alphas = []
         for rule in rules:
             if rule.tail[0]==head:
-                betas.append(rule.tail[1:])
+                betas.append(rule)
             else:
-                alphas.append(rule.tail)
+                alphas.append(rule)
         if not betas or not alphas:
             return False
-        for rule in rules:
-            self.remove(rule)
+        #needs recursion removed
+        self.__assert_parent__()
+        beta_indexes = []
+        for b in xrange(len(betas)):
+            rule = betas[b]
+            beta_indexes.append(self.index(rule))
+            betas[b] = rule.tail[1:]
+        alpha_indexes = []
+        for a in xrange(len(alphas)):
+            rule = alphas[a]
+            alpha_indexes.append(self.index(rule))
+            alphas[a] = rule.tail
         z = self.__gen_nonterminal__(prefix=head.name)
-        self.add(Rule(z, []))       
-        for alpha in alphas:
-            self.add(Rule(head, alpha+[z]))       
-        for beta in betas:
-            self.add(Rule(z, beta+[z]))       
+        for i,alpha in izip(alpha_indexes, alphas):
+            self.rules[i] = Rule(head, alpha+[z])
+        for i,beta in izip(beta_indexes, betas):
+            self.rules[i] = Rule(z, beta+[z])
+        added_index = len(self.rules)
+        self.rules.append(Rule(z, []))       
+        redo = RedoLeftRecursion(added_index, alpha_indexes)
+        self.to_parent_transforms.append(redo)
         return True
     def try_removing_left_recursion(self):
         removed = 0
@@ -254,6 +356,10 @@ class Grammar:
         self.compile_rbhm()
         self.compile_rlm()
         return total
+    def transform_to_parent(self, dec_list):
+        for tpt in reversed(self.to_parent_transforms):
+            dec_list = tpt.transform(dec_list)
+        return dec_list
     def __str__(self):
         return '\n'.join('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))
 

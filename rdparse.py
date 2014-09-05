@@ -108,13 +108,7 @@ class RDParser:
         self.state = 'parsed'
         return True
     def parse_full(self):
-        assert(self.state=='unparsed')
-        while self.todo_stack or not self.stream.finished():
-            if not self.__iterate__():
-                self.state = 'invalid'
-                return False
-        self.state = 'parsed'
-        return True
+        return parse_filtered(self, is_match=lambda s:s.stream.finished())
     def parse_filtered(self, is_match):
         """is_match should be a function or lambda that this parser
         and returns True for valid matches and False for invalid ones.
@@ -142,7 +136,7 @@ class RDParser:
         self.stream.reset()
         for symbol, arg in self.parsed_stack:
             if symbol.is_terminal():
-                term_instances.append(stream.advance(arg))
+                term_instances.append(self.stream.advance(arg))
             else:
                 rule = self.grammar.rules_by_head(symbol)[arg]
                 decision_list.append(self.grammar.index(rule))
@@ -150,35 +144,6 @@ class RDParser:
     def __str__(self):
         ret = "["+",".join('(%s,%d)'%(str(a),b) for a,b in self.todo_stack)+"] "
         ret+= "["+",".join('(%s,%d)'%(str(a),b) for a,b in self.parsed_stack)+"] "
-        ret+= str(stream.index)
+        ret+= str(self.stream.index)
         return ret
 
-S = Symbol('S')
-A = Symbol('A')
-B = Symbol('B')
-a = StringTerminal('a')
-b = StringTerminal('b')
-rules = [
-    Rule(S, [A,B]),
-    Rule(A, [a]),
-    Rule(B, [b,A,B]),
-    Rule(B, [b]),
-]
-grammar = Grammar(rules)
-grammar.compile()
-#grammer.compile_rbhm()
-#grammer.compile_rlm()
-print grammar
-stream = StringStream('ababa')
-print stream
-parser = RDParser(stream, grammar)
-print parser
-def is_match(parser):
-   return parser.stream.index>=3
-print parser.parse_filtered(is_match)
-print parser
-decs, terms = parser.get_generation_lists()
-print decs
-rec = "".join(terms)
-print rec
-assert stream.string.startswith(rec)
