@@ -1,15 +1,41 @@
 from grammar import *
 from streams import *
-from rdparse import *
+from parser import *
 
 class StringTerminal(TerminalSymbol):
     def try_consume(self, stream):
         assert(isinstance(stream, StringStream))
         if stream.has(self.name):
-            return [len(self.name)]
+            return [(len(self.name),self.name)]
         return False
 
-class RepeatTerminal(TerminalSymbol):
+class RepeatTerminal(ComplexTerminalSymbol):
+    def __init__(self, term, minimum=0, maximum=None, gready=True):
+        assert(term.is_terminal())
+        self.term = term
+        self.minimum = minimum
+        self.maximum = maximum
+        self.gready = gready
+        S = Symbol(str(self)+"*")
+        rules = [
+            Rule(S,[]),
+            Rule(S,[self.term, S]),
+        ]
+        if self.gready:
+            rules.reverse()
+        self.subgram = Grammar(rules, start=S)
+        TerminalSymbol.__init__(self, str(self))
+    def subgrammar(self):
+        return self.subgram
+    def try_consume(self, stream):
+        substream = stream.substream()
+        subparser = Parser(substream, self.subgram)
+        def ret():
+            for p in subparser.parse_all():
+                n = p.parsed_terminals-1
+                if self.minimum<=n<=self.maximum:
+                    yield p.stream.index,p
+        return ret()
     def __str__(self):
         if self.maximum is None:
             if self.minimum==0:
@@ -25,32 +51,3 @@ class RepeatTerminal(TerminalSymbol):
         if not self.gready:
             code+='?'
         return str(self.term)+code
-    def __init__(self, term, minimum=0, maximum=None, gready=True):
-        assert(term.is_terminal())
-        self.term = term
-        self.minimum = minimum
-        self.maximum = maximum
-        self.gready = gready
-        TerminalSymbol.__init__(self, RepeatTerminal.__str__(self))
-    def try_consume(self, stream):
-        S = Symbol('S')
-        rules = [
-            Rule(S,[]),
-            Rule(S,[self.term, S]),
-        ]
-        if self.gready:
-            rules.reverse()
-        subgram = Grammar(rules)
-        substream = stream.substream()
-        subparser = RDParser(substream, subgram)
-        print subparser
-        print subgram
-        print substream
-        print subparser.parse_partial()
-        print subparser
-        subparser = RDParser(substream, subgram)
-        def ret():
-            for p in subparser.parse_all():
-                if self.minimum<=p.parsed_terminals<=self.maximum:
-                    yield p.stream.index
-        return ret()

@@ -3,7 +3,7 @@
 from grammar import *
 from streams import ParsingStream
 
-class RDParser:
+class Parser:
     def __init__(self, stream, grammar):
         assert(isinstance(stream, ParsingStream))
         self.todo_stack = [(grammar.start,None)]
@@ -11,7 +11,10 @@ class RDParser:
         self.stream = stream
         self.grammar = grammar
         self.parsed_terminals = 0
+        self.verbose = False
     def __advance__(self):
+        if self.verbose:
+            print '>',self
         if not self.todo_stack:
             return False
         symbol, args = self.todo_stack.pop()
@@ -28,18 +31,18 @@ class RDParser:
             if consume is False:
                 return False
             consume = iter(consume)
-            n = consume.next()
+            n,i = consume.next()
             self.stream.advance(n)
-            self.parsed_stack.append((terminal, (n,consume)))
+            self.parsed_stack.append((terminal, (n,i,consume)))
             self.parsed_terminals+=1
             return True
         else:
             try:
-                n,consume = args
+                n,i,consume = args
                 self.stream.backtrack(n)
-                n = consume.next()
+                n,i = consume.next()
                 self.stream.advance(n)
-                self.parsed_stack.append((terminal, (n,consume)))
+                self.parsed_stack.append((terminal, (n,i,consume)))
                 return True
             except StopIteration:
                 self.parsed_terminals-=1
@@ -57,9 +60,17 @@ class RDParser:
             self.todo_stack.append((symbol, None))
         return True
     def __backtrack__(self):
+        if self.verbose:
+            print '<',self
         if not self.parsed_stack:
             return False
-        self.todo_stack.append(self.parsed_stack.pop())
+        symbol, args = self.parsed_stack.pop()
+        if not symbol.is_terminal():
+            rules = self.grammar.rules_by_head(symbol)
+            rule = rules[args]
+            assert(len(rule.tail)>0)
+            del self.todo_stack[-len(rule.tail):]
+        self.todo_stack.append((symbol,args))
         return True
     def __iterate__(self):
         if not self.__advance__():
@@ -92,7 +103,8 @@ class RDParser:
         except StopIteration:
             return False
     def parse_full(self):
-        return self.parse_filtered(is_match=lambda s:s.stream.finished())
+        return self.parse_filtered(
+            is_match=lambda s:s.stream.finished())
     def get_generation_lists(self):
         decision_list = []
         term_instances = []
@@ -115,4 +127,46 @@ class RDParser:
         ret = "["+",".join(tostr(*t) for t in self.todo_stack)+"] "
         ret+= "["+",".join(tostr(*t) for t in self.parsed_stack)+"] "
         ret+= str(self.stream.index)
+        return ret
+    def __build_tree__(self, parent, offset):
+        symbol, args = self.parsed_stack[offset]
+        delta = 1
+        if symbol.is_terminal():
+            _,instance,_ = args
+            node = ParseNode(symbol, instance)
+        else:
+            node = ParseNode(symbol)
+            rule = self.grammar.rules_by_head(symbol)[args]
+            for s in rule.tail:
+                delta+=self.__build_tree__(node, offset+delta)
+        if parent is None:
+            return node
+        else:
+            parent.add(node)
+            return delta
+    def to_parse_tree(self):
+        ret = self.__build_tree__(None, 0)
+        return ret
+
+class ParseNode:
+    def __init__(self, symbol, instance=None):
+        self.symbol = symbol
+        if instance is not None:
+            assert(symbol.is_terminal())
+        self.instance = instance
+        if self.symbol.is_complex():
+            subtree = instance.to_parse_tree()
+            self.children = subtree.children
+        else:
+            self.children = []
+    def add(self, child):
+        assert(isinstance(child, ParseNode))
+        self.children.append(child)
+    def __str__(self, depth=0):
+        ret = '  '*depth
+        ret+= str(self.symbol)
+        if not self.children and self.instance is not None:
+            ret+=':'+str(self.instance)
+        for child in self.children:
+            ret+='\n'+child.__str__(depth=depth+1)
         return ret

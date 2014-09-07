@@ -1,0 +1,11 @@
+Repeat term test...
+Gready:
+0)	S -> 'b' 'a'{2,3}
+baaaa
+True
+[] [(S,0),('b',1),('a'{2,3},3)] 4
+Not Gready:
+0)	S -> 'b' 'a'{2,3}?
+baaaa
+True
+[] [(S,0),('b',1),('a'{2,3}?,2)] 3

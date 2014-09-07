@@ -1,11 +1,11 @@
 from grammar import *
 from streams import *
 from terms import *
-from rdparse import *
+from parser import *
 import os.path
 
-def repeat_term_test():
-    yield "Repeat term test..."
+def parsetree_test():
+    yield "ParseTree test..."
     S = Symbol('S')
     a = StringTerminal('a')
     b = StringTerminal('b')
@@ -15,11 +15,48 @@ def repeat_term_test():
     ]
     gram = Grammar(rules)
     stream = StringStream('baaaa')
+    parser = Parser(stream, gram)
     yield gram
-    yield stream
-    parser = RDParser(stream, gram)
     yield parser.parse_partial()
-    yield str(parser)
+    yield parser.to_parse_tree()
+    yield parser
+
+def substream_test():
+    yield "Substream test..."
+    S = Symbol('S')
+    a = StringTerminal('a')
+    rules = [
+        Rule(S, [a, S]),
+        Rule(S, [])
+    ]
+    gram = Grammar(rules)
+    stream = StringStream('baaa')
+    stream.advance(1)
+    parser = Parser(stream.substream(), gram)
+    yield parser.parse_partial()
+    yield parser
+
+def repeat_term_test():
+    yield "Repeat term test..."
+    for g in [True,False]:
+        if g:
+            yield 'Gready:'
+        else:
+            yield 'Not Gready:'
+        S = Symbol('S')
+        a = StringTerminal('a')
+        b = StringTerminal('b')
+        a_ = RepeatTerminal(a,2,3,gready=g)
+        rules = [
+            Rule(S, [b, a_]),
+        ]
+        gram = Grammar(rules)
+        stream = StringStream('baaaa')
+        yield gram
+        yield stream
+        parser = Parser(stream, gram)
+        yield parser.parse_partial()
+        yield parser
 
 def factor_test():
     yield "Factoring test..."
@@ -132,7 +169,7 @@ def rdp_test():
     yield grammar
     stream = StringStream('ababa')
     yield stream
-    parser = RDParser(stream, grammar)
+    parser = Parser(stream, grammar)
     yield parser
     def is_match(parser):
        return parser.stream.index>=3
@@ -278,7 +315,7 @@ def simple_rdp_test():
     yield grammar
     stream = StringStream('aa')
     yield stream
-    parser = RDParser(stream, grammar)
+    parser = Parser(stream, grammar)
     yield parser
     yield parser.parse_full()
     yield parser
@@ -311,13 +348,16 @@ if __name__=='__main__':
         redolr_test,
         simple_rdp_test,
         repeat_term_test,
+        substream_test,
+        parsetree_test,
     ]
     for test in tests:
+        print test.__name__
         results = "\n".join(str(o) for o in test())
         fn = test_dir+'/'+test.__name__
         old_results = try_get_file(fn)
         if old_results != results:
-            print "!!! Old test results do not match current results: !!!"
+            print "!!! Old test results do not match: !!!"
             print results
             if ask_yn("Is this new output valid? (y/n)"):
                 with open(fn,'w') as f:

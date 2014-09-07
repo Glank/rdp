@@ -10,6 +10,8 @@ class Symbol:
         self.name = name
     def is_terminal(self):
         return isinstance(self, TerminalSymbol)
+    def is_complex(self):
+        return isinstance(self, ComplexTerminalSymbol)
     def __hash__(self):
         return hash(self.name)
     def __eq__(self, other):
@@ -25,15 +27,16 @@ class TerminalSymbol(Symbol):
     def __init__(self, name):
         Symbol.__init__(self, name)
     def try_consume(self, stream):
-        """Tries to consume self from the stream.
+        """Tests if can consume self from the stream.
         Returns False if not consumable.
-        Else, returns an iterable object that yields the the length
-        of each possible interpretation of this terminal
-        given the input stream's current position.
-        The iterable may store reference to the stream and assume
-        that calls to next(self) will come only at times when the stream
-        is in the same initial position when this try_consume
-        method was called."""
+        Else, returns an iterable object that yields tuples:
+        the stream length and value of each possible 
+        interpretation of this terminal and the given 
+        the input stream's current position. The iterable
+        may store reference to the stream and assume that 
+        calls to next(self) will come only at times when the 
+        stream is in the same initial position when this
+        try_consume method was called."""
         raise NotImplementedError()
     def __repr__(self):
         return 'TerminalSymbol(%r)'%self.name
@@ -45,11 +48,22 @@ class TerminalSymbol(Symbol):
         correspond to this terminal."""
         raise NotImplementedError()
 
+class ComplexTerminalSymbol(TerminalSymbol):
+    """A ComplexTerminalSymbol is one that returns instances based
+    on a subgrammar. This is usefull in defining mildly context
+    sensitive grammars. 
+    The instance values returned by try_consume for a 
+    ComplexTerminalSymbol should be instances of a parser.
+    """
+    def subgrammar(self):
+        """Returns the grammar that this parser uses."""
+        raise NotImplementedError()
+
 class Epsilon(TerminalSymbol):
     def __init__(self):
         Symbol.__init__(self, '__epsilon__')
     def try_consume(self, stream):
-        return [0]
+        return [(0,None)]
     def __repr__(self):
         return "Epsilon()"
     def __str__(self):
@@ -366,5 +380,6 @@ class Grammar:
             dec_list = tpt.transform(dec_list)
         return dec_list
     def __str__(self):
-        return '\n'.join('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))
+        it = ('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))
+        return '\n'.join(it)
 
