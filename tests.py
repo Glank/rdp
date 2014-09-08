@@ -34,6 +34,7 @@ def parsetree_complied_test():
         Rule(B, [b]),
     ]
     gram = Grammar(rules)
+    yield str(gram)
     gram.compile()
     stream = StringStream('bbaaaa')
     parser = Parser(stream, gram)
@@ -42,7 +43,9 @@ def parsetree_complied_test():
     yield parsed
     if parsed:
         yield parser
-        yield parser.to_parse_tree()
+        tree = parser.to_parse_tree()
+        yield tree
+        yield ''.join(n.instance for n in tree.nonepsilon_terms())
 
 def parsetree_test():
     yield "ParseTree test..."

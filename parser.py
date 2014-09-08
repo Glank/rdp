@@ -3,6 +3,7 @@
 from grammar import *
 from streams import ParsingStream
 
+
 class Parser:
     def __init__(self, stream, grammar):
         assert(isinstance(stream, ParsingStream))
@@ -110,7 +111,8 @@ class Parser:
         term_instances = []
         for symbol, args in self.parsed_stack:
             if symbol.is_terminal():
-                term_instances.append(args[1])
+                if args[1] is not None:
+                    term_instances.append(args[1])
             else:
                 rule = self.grammar.rules_by_head(symbol)[args]
                 decision_list.append(self.grammar.index(rule))
@@ -127,52 +129,67 @@ class Parser:
         ret+= "["+",".join(tostr(*t) for t in self.parsed_stack)+"] "
         ret+= str(self.stream.index)
         return ret
-    def __build_tree__(self, parent, dec_off, term_off, grammar, 
-        dec_list, term_list):
-        rule = grammar.rules[dec_list[dec_off]]
-        dec_delta = 1
-        term_delta = 0
+    def __build_tree__(self, parent, offset, grammar, dec_list):
+        rule = grammar.rules[dec_list[offset]]
+        delta = 1
         node = ParseNode(rule.head)
         for s in rule.tail:
             if s.is_terminal():
-                child = ParseNode(s, term_list[term_off+term_delta])
+                child = ParseNode(s)
                 node.add(child)
-                term_delta+=1
             else:
-                dd,td = self.__build_tree__(
-                    node, dec_off+dec_delta, term_off+term_delta,
-                    grammar, dec_list, term_list
+                delta = self.__build_tree__(
+                    node, offset+delta, grammar, dec_list
                 )
-                dec_delta+=dd
-                term_delta+=td
         if parent is None:
             return node
         else:
             parent.add(node)
-            return dec_delta, term_delta
-    def to_parse_tree(self):
+            return delta
+    def to_parse_tree(self, expand_complex=True):
         decs, terms = self.get_generation_lists()
         grammar = self.grammar
         if self.grammar.parent is not None:
             grammar = self.grammar.parent
             decs = self.grammar.transform_to_parent(decs)    
-        ret = self.__build_tree__(None, 0, 0, grammar, decs, terms)
+        ret = self.__build_tree__(None, 0, grammar, decs)
+        off = 0
+        for node in ret.nonepsilon_terms():
+            node.instance = terms[off]
+            if node.symbol.is_complex() and expand_complex:
+                node.expand()
+            off+=1
         return ret
 
 class ParseNode:
-    def __init__(self, symbol, instance=None):
+    def __init__(self, symbol):
         self.symbol = symbol
-        if instance is not None:
-            assert(symbol.is_terminal())
-        self.instance = instance
-        if self.symbol.is_complex():
-            subtree = instance.to_parse_tree()
-            self.children = subtree.children
+        self.children = []
+        self.parent = None
+        #used if terminal
+        self.instance = None
+        #used if not terminal
+        self.prev = None
+        self.next = None
+    def nonepsilon_terms(self):
+        if not self.children:
+            if self.symbol!=Epsilon():
+                yield self
         else:
-            self.children = []
+            for child in self.children:
+                for net in child.nonepsilon_terms():
+                    yield net
+    def expand(self):
+        assert(self.symbol.is_complex())
+        subtree = self.instance.to_parse_tree()
+        self.children = subtree.children
+        for c in self.children:
+            c.parent = self
     def add(self, child):
+        assert(not self.symbol.is_terminal())
         assert(isinstance(child, ParseNode))
         self.children.append(child)
+        child.parent = self
     def __str__(self, depth=0):
         ret = '  '*depth
         ret+= str(self.symbol)
