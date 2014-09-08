@@ -4,6 +4,46 @@ from terms import *
 from parser import *
 import os.path
 
+def decompile_test():
+    yield "Decompile test."
+    S = Symbol('S')
+    a = StringTerminal('a')
+    b = StringTerminal('b')
+    a_ = RepeatTerminal(a,2,3)
+    rules = [
+        Rule(S, [b, a_]),
+        Rule(S, [S, b, a_]),
+    ]
+    gram = Grammar(rules)
+    yield gram
+    yield ''
+    gram.compile()
+    yield gram
+    yield gram.transform_to_parent([0,2])
+
+def parsetree_complied_test():
+    yield "ParseTree Compiled test..."
+    S = Symbol('S')
+    B = Symbol('B')
+    a = StringTerminal('a')
+    b = StringTerminal('b')
+    a_ = RepeatTerminal(a,2,3)
+    rules = [
+        Rule(S, [B, a_]),
+        Rule(B, [B, b]),
+        Rule(B, [b]),
+    ]
+    gram = Grammar(rules)
+    gram.compile()
+    stream = StringStream('bbaaaa')
+    parser = Parser(stream, gram)
+    yield gram
+    parsed =  parser.parse_partial()
+    yield parsed
+    if parsed:
+        yield parser
+        yield parser.to_parse_tree()
+
 def parsetree_test():
     yield "ParseTree test..."
     S = Symbol('S')
@@ -177,9 +217,10 @@ def rdp_test():
     yield parser
     decs, terms = parser.get_generation_lists()
     yield decs
-    rec = "".join(terms)
-    yield rec
-    assert stream.string.startswith(rec)
+    yield terms
+    #rec = "".join(terms)
+    #yield rec
+    #assert stream.string.startswith(rec)
 
 def unfactor_test():
     yield "Unfactor Test."
@@ -350,6 +391,8 @@ if __name__=='__main__':
         repeat_term_test,
         substream_test,
         parsetree_test,
+        decompile_test,
+        parsetree_complied_test,
     ]
     for test in tests:
         print test.__name__

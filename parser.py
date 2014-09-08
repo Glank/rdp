@@ -108,10 +108,9 @@ class Parser:
     def get_generation_lists(self):
         decision_list = []
         term_instances = []
-        self.stream.reset()
         for symbol, args in self.parsed_stack:
             if symbol.is_terminal():
-                term_instances.append(self.stream.advance(args[0]))
+                term_instances.append(args[1])
             else:
                 rule = self.grammar.rules_by_head(symbol)[args]
                 decision_list.append(self.grammar.index(rule))
@@ -128,24 +127,36 @@ class Parser:
         ret+= "["+",".join(tostr(*t) for t in self.parsed_stack)+"] "
         ret+= str(self.stream.index)
         return ret
-    def __build_tree__(self, parent, offset):
-        symbol, args = self.parsed_stack[offset]
-        delta = 1
-        if symbol.is_terminal():
-            _,instance,_ = args
-            node = ParseNode(symbol, instance)
-        else:
-            node = ParseNode(symbol)
-            rule = self.grammar.rules_by_head(symbol)[args]
-            for s in rule.tail:
-                delta+=self.__build_tree__(node, offset+delta)
+    def __build_tree__(self, parent, dec_off, term_off, grammar, 
+        dec_list, term_list):
+        rule = grammar.rules[dec_list[dec_off]]
+        dec_delta = 1
+        term_delta = 0
+        node = ParseNode(rule.head)
+        for s in rule.tail:
+            if s.is_terminal():
+                child = ParseNode(s, term_list[term_off+term_delta])
+                node.add(child)
+                term_delta+=1
+            else:
+                dd,td = self.__build_tree__(
+                    node, dec_off+dec_delta, term_off+term_delta,
+                    grammar, dec_list, term_list
+                )
+                dec_delta+=dd
+                term_delta+=td
         if parent is None:
             return node
         else:
             parent.add(node)
-            return delta
+            return dec_delta, term_delta
     def to_parse_tree(self):
-        ret = self.__build_tree__(None, 0)
+        decs, terms = self.get_generation_lists()
+        grammar = self.grammar
+        if self.grammar.parent is not None:
+            grammar = self.grammar.parent
+            decs = self.grammar.transform_to_parent(decs)    
+        ret = self.__build_tree__(None, 0, 0, grammar, decs, terms)
         return ret
 
 class ParseNode:

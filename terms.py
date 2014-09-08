@@ -16,7 +16,7 @@ class RepeatTerminal(ComplexTerminalSymbol):
         self.minimum = minimum
         self.maximum = maximum
         self.gready = gready
-        S = Symbol(str(self)+"*")
+        S = Symbol(str(self))
         rules = [
             Rule(S,[]),
             Rule(S,[self.term, S]),

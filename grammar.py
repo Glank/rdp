@@ -170,6 +170,11 @@ class RedoLeftRecursion(DecListTransform):
                             yield rec_stack.pop()
                         rec_stack = None
         return list(iter())
+    def __str__(self):
+        ret = "RedoLeftRecursion - "
+        ret+= str(self.added_index)+', '
+        ret+= str(self.alpha_indexes)
+        return ret
 
 class Grammar:
     def __init__(self, rules=None, start=Symbol('S')):
