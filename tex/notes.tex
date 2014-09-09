@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{url}
 \usepackage{cite}
+\usepackage{amsmath}
 
 \begin{document}
 
@@ -8,7 +9,14 @@
 \author{Ernest Kirstein}
 \maketitle
 
-I got a lot of stuff from this guy: ~\cite{lewis}.
+\section*{Basic Recursive Descent Parsing}
+
+To begin writing the parser, I used notes from ~\cite{lewis}.
+
+\begin{align*}
+A &\rightarrow B\\
+B &\rightarrow C
+\end{align*}
 
 \bibliography{notes}{}
 \bibliographystyle{plain}
