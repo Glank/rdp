@@ -1,1 +1,7 @@
 *.pyc
+tex/*.aux
+tex/*.bbl
+tex/*.blg
+tex/*.dvi
+tex/*.log
+tex/*.pdf
