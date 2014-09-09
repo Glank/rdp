@@ -378,7 +378,7 @@ def ask_yn(question):
     return answer in ['y','yes']
 
 if __name__=='__main__':
-    test_dir = 'test_results'
+    test_dir = '../test_results'
     tests = [
         factor_test,
         substitute_test,
