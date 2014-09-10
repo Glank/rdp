@@ -121,6 +121,8 @@ class Unfactor(DecListTransform):
         self.added_index = added_index
     def transform(self, dec_list):
         return [i for i in dec_list if i!=self.added_index]
+    def __str__(self):
+        return "Unfactor: %d"%self.added_index
 
 class Resubstitute(DecListTransform):
     def __init__(self, removed_index, subed_indexes, added_start):
@@ -138,6 +140,8 @@ class Resubstitute(DecListTransform):
                     i+=1
                 yield i
         return list(iter())
+    def __str__(self):
+        return "Resubstitute: %d,%r,%d"%(self.removed_index, self.subed_indexes, self.added_start)
 
 class Unremove(DecListTransform):
     def __init__(self, removed_indexes):
@@ -148,6 +152,8 @@ class Unremove(DecListTransform):
                 removed_before = bisect(self.removed_indexes, i)
                 yield i+removed_before
         return list(iter())
+    def __str__(self):
+        return "Unremove: %r"%(self.removed_indexes)
 
 class RedoLeftRecursion(DecListTransform):
     def __init__(self, added_index, alpha_indexes):
@@ -177,7 +183,7 @@ class RedoLeftRecursion(DecListTransform):
         return ret
 
 class Grammar:
-    def __init__(self, rules=None, start=Symbol('S')):
+    def __init__(self, rules=None, start=Symbol('S'), store_intermediates=False):
         if rules is None:
             rules = []
         assert(isinstance(rules, list))
@@ -188,6 +194,9 @@ class Grammar:
         self.reverse_lookup_map = None
         #the weekly-equivalent pre-compile grammar
         self.parent = None 
+        self.intermediates = [] if store_intermediates else None
+        if self.intermediates is not None:
+            self.intermediates.append(deepcopy(self))
         #rules for converting a decision list from this grammar
         #into a weekly-equivalent one for the parent grammar
         self.to_parent_transforms = None 
@@ -232,6 +241,13 @@ class Grammar:
             i+=1
             nt = Symbol('_%s%d'%(prefix,i))
         return nt
+    def __commit_transform__(self, transform):
+        self.to_parent_transforms.append(transform)
+        if self.intermediates is not None:
+            tmp = self.intermediates
+            self.intermediates = None
+            tmp.append(deepcopy(self))
+            self.intermediates = tmp
     def __factor__(self, head):
         rules = self.rules_by_head(head)
         if len(rules)<=1:
@@ -253,7 +269,7 @@ class Grammar:
                 self.rules[i] = Rule(z, rule.tail[end:])
             added_index = len(self.rules)
             self.rules.append(Rule(head, common_prefix+[z]))
-            self.to_parent_transforms.append(Unfactor(added_index))
+            self.__commit_transform__(Unfactor(added_index))
             return True
         return False
     def try_factoring(self):
@@ -282,7 +298,7 @@ class Grammar:
         for beta in betas:
             self.rules.append(Rule(a,beta+alpha))
         resubstitute = Resubstitute(removed_index, subed_indexes, added_start)
-        self.to_parent_transforms.append(resubstitute)
+        self.__commit_transform__(resubstitute)
         return True
     def try_substituting(self):
         for rule in self.rules:
@@ -307,7 +323,7 @@ class Grammar:
                 del self.rules[i]
         if removed:
             self.__assert_parent__()
-            self.to_parent_transforms.append(Unremove(removed))
+            self.__commit_transform__(Unremove(removed))
         return len(removed)
     def __remove_left_recursion__(self, head):
         rules = self.rules_by_head(head)
@@ -340,7 +356,7 @@ class Grammar:
         added_index = len(self.rules)
         self.rules.append(Rule(z, []))       
         redo = RedoLeftRecursion(added_index, alpha_indexes)
-        self.to_parent_transforms.append(redo)
+        self.__commit_transform__(redo)
         return True
     def try_removing_left_recursion(self):
         removed = 0
@@ -380,9 +396,31 @@ class Grammar:
         self.compile_rbhm()
         self.compile_rlm()
         return total
-    def transform_to_parent(self, dec_list):
+    def get_ne_terminals(self, dec_list):
+        def it():
+            for dec in dec_list:
+                rule = self.rules[dec]
+                for symbol in rule.tail:
+                    if symbol.is_terminal() and symbol!=Epsilon():
+                        yield symbol
+        return list(it())
+    def transform_to_parent(self, dec_list, include_intermediates=False):
+        if self.intermediates is not None:
+            net = self.get_ne_terminals(dec_list)
+            i=len(self.intermediates)-2
+        if include_intermediates:
+            int_decs = [dec_list[:]]
         for tpt in reversed(self.to_parent_transforms):
             dec_list = tpt.transform(dec_list)
+            if include_intermediates:
+                int_decs.append(dec_list[:])
+            if self.intermediates is not None:
+                intermediate = self.intermediates[i]
+                new_net = intermediate.get_ne_terminals(dec_list)
+                i-=1
+                assert(new_net == net)
+        if include_intermediates:
+            return int_decs
         return dec_list
     def __str__(self):
         it = ('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))

@@ -138,7 +138,7 @@ class Parser:
                 child = ParseNode(s)
                 node.add(child)
             else:
-                delta = self.__build_tree__(
+                delta+= self.__build_tree__(
                     node, offset+delta, grammar, dec_list
                 )
         if parent is None:

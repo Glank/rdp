@@ -9,6 +9,13 @@ class StringTerminal(TerminalSymbol):
             return [(len(self.name),self.name)]
         return False
 
+class WordTerminal(TerminalSymbol):
+    def try_consume(self, stream):
+        assert(isinstance(stream, WordStream))
+        if stream.has(self.name):
+            return [(1,[self.name])]
+        return False
+
 class RepeatTerminal(ComplexTerminalSymbol):
     def __init__(self, term, minimum=0, maximum=None, gready=True):
         assert(term.is_terminal())
