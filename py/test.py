@@ -30,9 +30,11 @@ gram = Grammar(rules, store_intermediates=True)
 print gram
 #TODO: work's uncompiled, but not compiled
 gram.compile()
+print gram
 #print gram
 stream = WordStream("the fine cook gave".split())
 parser = Parser(stream, gram)
+parser.verbose=True
 parsed =  parser.parse_full()
 print parsed
 if parsed:

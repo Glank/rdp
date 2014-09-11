@@ -40,6 +40,8 @@ class Parser:
             advanced = self.__advance_terminal__(symbol, args)
         else:
             advanced = self.__advance_nonterminal__(symbol, args)
+            if not advanced:
+                args = None
         if not advanced:
             self.todo_stack.append((symbol, args))
         return advanced
@@ -64,6 +66,7 @@ class Parser:
                 return True
             except StopIteration:
                 self.parsed_terminals-=1
+                self.todo_stack.append((terminal, (n,i,consume)))
                 return self.__backtrack__()
     def __advance_nonterminal__(self, head, rule_index):
         if rule_index is None:

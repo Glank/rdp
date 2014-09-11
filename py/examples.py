@@ -43,7 +43,7 @@ def language_example():
         ("gave", [V]),
         ("thankfully", [Adv]),
         ("hesitantly", [Adv]),
-        ("cold", [V,N]),
+        ("cold", [Adj,N]),
         ("sandwich", [N]),
     ]
     word_rules = []
@@ -54,14 +54,11 @@ def language_example():
     #Now we can compile a full grammar:
     gram = Grammar(core_rules+word_rules)
     gram.compile()
-    print gram
     #and we can try parsing a stream
-    stream = WordStream("the fine cook gave".split())
+    stream = WordStream("the fine cook gave lazy john a cold sandwich".split())
     parser = Parser(stream, gram)
     parsed =  parser.parse_full()
-    print parsed
     if parsed:
-        print parser
         tree = parser.to_parse_tree()
         print tree
 
