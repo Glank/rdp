@@ -4,7 +4,7 @@ from terms import *
 from parser import *
 
 def language_example():
-    #First we will define some simple grammar rules
+    #First we will define some grammar rules
     S = Symbol('S')
     NP = Symbol('NP')
     VP = Symbol('VP')
@@ -27,6 +27,8 @@ def language_example():
         Rule(AVP, [Adv, V]),
         Rule(AVP, [V]),
     ]
+    #Lets check out what that grammar would look like
+    print Grammar(core_rules)
     #Next, we will specify the parts of speach of a few words
     words = [
         ("john", [N]),
@@ -51,10 +53,10 @@ def language_example():
             word_rules.append(rule)
     #Now we can compile a full grammar:
     gram = Grammar(core_rules+word_rules)
+    gram.compile()
     print gram
-    #gram.compile()
     #and we can try parsing a stream
-    stream = WordStream("john cook sandwich".split())
+    stream = WordStream("the fine cook gave".split())
     parser = Parser(stream, gram)
     parsed =  parser.parse_full()
     print parsed

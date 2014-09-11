@@ -116,11 +116,20 @@ class DecListTransform:
         raise NotImplementedError()
 
 class Unfactor(DecListTransform):
-    def __init__(self, added_index):
+    def __init__(self, added_index, factor_indexes):
         #assumes added_index is the max index
         self.added_index = added_index
+        self.factor_indexes = set(factor_indexes)
     def transform(self, dec_list):
-        return [i for i in dec_list if i!=self.added_index]
+        factors = [d for d in dec_list if d in self.factor_indexes]
+        def it():
+            for d in dec_list:
+                if d == self.added_index:
+                    yield factors.pop(0)
+                elif d not in self.factor_indexes:
+                    yield d
+            assert(len(factors)==0)
+        return list(it())
     def __str__(self):
         return "Unfactor: %d"%self.added_index
 
@@ -147,11 +156,14 @@ class Unremove(DecListTransform):
     def __init__(self, removed_indexes):
         self.removed_indexes = sorted(removed_indexes)
     def transform(self, dec_list):
-        def iter():
-            for i in dec_list:
-                removed_before = bisect(self.removed_indexes, i)
-                yield i+removed_before
-        return list(iter())
+        def alt(i):
+            for j in self.removed_indexes:
+                if j<=i:
+                    i+=1
+                else:
+                    break
+            return i
+        return list(alt(i) for i in dec_list)
     def __str__(self):
         return "Unremove: %r"%(self.removed_indexes)
 
@@ -264,12 +276,15 @@ class Grammar:
             self.__assert_parent__()
             end = len(common_prefix)
             z = self.__gen_nonterminal__()
+            factor_indexes = []
             for rule in rules:
                 i = self.index(rule)
                 self.rules[i] = Rule(z, rule.tail[end:])
+                factor_indexes.append(i)
             added_index = len(self.rules)
             self.rules.append(Rule(head, common_prefix+[z]))
-            self.__commit_transform__(Unfactor(added_index))
+            unfactor = Unfactor(added_index, factor_indexes)
+            self.__commit_transform__(unfactor)
             return True
         return False
     def try_factoring(self):
@@ -320,9 +335,11 @@ class Grammar:
             for rule in to_del:
                 i = self.index(rule)
                 removed.append(i)
-                del self.rules[i]
         if removed:
             self.__assert_parent__()
+            removed.sort()
+            for i in reversed(removed):
+                del self.rules[i]
             self.__commit_transform__(Unremove(removed))
         return len(removed)
     def __remove_left_recursion__(self, head):

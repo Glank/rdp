@@ -3,6 +3,23 @@
 from grammar import *
 from streams import ParsingStream
 
+def build_tree(parent, offset, grammar, dec_list):
+    rule = grammar.rules[dec_list[offset]]
+    delta = 1
+    node = ParseNode(rule.head)
+    for s in rule.tail:
+        if s.is_terminal():
+            child = ParseNode(s)
+            node.add(child)
+        else:
+            delta+= build_tree(
+                node, offset+delta, grammar, dec_list
+            )
+    if parent is None:
+        return node
+    else:
+        parent.add(node)
+        return delta
 
 class Parser:
     def __init__(self, stream, grammar):
@@ -129,30 +146,13 @@ class Parser:
         ret+= "["+",".join(tostr(*t) for t in self.parsed_stack)+"] "
         ret+= str(self.stream.index)
         return ret
-    def __build_tree__(self, parent, offset, grammar, dec_list):
-        rule = grammar.rules[dec_list[offset]]
-        delta = 1
-        node = ParseNode(rule.head)
-        for s in rule.tail:
-            if s.is_terminal():
-                child = ParseNode(s)
-                node.add(child)
-            else:
-                delta+= self.__build_tree__(
-                    node, offset+delta, grammar, dec_list
-                )
-        if parent is None:
-            return node
-        else:
-            parent.add(node)
-            return delta
     def to_parse_tree(self, expand_complex=True):
         decs, terms = self.get_generation_lists()
         grammar = self.grammar
         if self.grammar.parent is not None:
             grammar = self.grammar.parent
             decs = self.grammar.transform_to_parent(decs)    
-        ret = self.__build_tree__(None, 0, grammar, decs)
+        ret = build_tree(None, 0, grammar, decs)
         off = 0
         for node in ret.nonepsilon_terms():
             node.instance = terms[off]
