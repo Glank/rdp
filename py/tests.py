@@ -4,6 +4,33 @@ from terms import *
 from parser import *
 import os.path
 
+def redo_left_recursion_big_test():
+    S = Symbol('S')
+    A = Symbol('A')
+    B = Symbol('B')
+    a = StringTerminal('a')
+    b = StringTerminal('b')
+    rules = [
+        Rule(S, [A,B]),
+        Rule(A, [a]),
+        Rule(A, [S,A]),
+        Rule(B, [b]),
+        Rule(B, [S,B]),
+    ]
+    gram = Grammar(rules)
+    yield str(gram)
+    gram.compile()
+    yield "*"*35
+    yield str(gram)
+    yield "*"*35
+
+    stream = StringStream("aabb")
+    parser = Parser(stream, gram)
+    parser.parse_full()
+    dec_list,_ = parser.get_generation_lists()
+    yield dec_list
+    yield gram.transform_to_parent(dec_list)
+
 def big_test():
     S = Symbol('S')
     NP = Symbol('NP')
@@ -436,6 +463,7 @@ if __name__=='__main__':
         decompile_test,
         parsetree_complied_test,
         big_test,
+        redo_left_recursion_big_test,
     ]
     for test in tests:
         print test.__name__

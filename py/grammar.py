@@ -172,29 +172,48 @@ class RedoLeftRecursion(DecListTransform):
         #assumes added_index is the max index
         self.added_index = added_index
         self.alpha_indexes = set(alpha_indexes)
+        self.beta_indexes = set(beta_indexes)
     def transform(self, dec_list):
-        print '*',dec_list
-        def iter():
+        def t(dec_list):
             rec_stack = None
+            int_stack = None #intermediates (between betas, alphas, and added epsilon)
+            depth = 0 #recursive depth
             for i in dec_list:
                 if i in self.alpha_indexes:
-                    rec_stack = [i]
+                    if depth == 0:
+                        rec_stack = [i]
+                        int_stack = [[]]
+                        depth = 1
+                    else:
+                        int_stack[-1].append(i)
+                        depth+= 1
                 elif rec_stack is None:
                     yield i
                 else:
-                    if i!=self.added_index:
+                    if i==self.added_index:
+                        if depth == 1:
+                            while rec_stack:
+                                yield rec_stack.pop()
+                                for j in t(int_stack.pop()):
+                                    yield j
+                            rec_stack = None
+                            int_stack = None
+                            depth = 0
+                        else:
+                            int_stack[-1].append(i)
+                            depth-= 1
+                    elif i in self.beta_indexes and depth==1:
                         rec_stack.append(i)
+                        int_stack.append([])
                     else:
-                        while rec_stack:
-                            yield rec_stack.pop()
-                        rec_stack = None
-        ret = list(iter())
-        print '*',ret
+                        int_stack[-1].append(i)
+        ret = list(t(dec_list))
         return ret
     def __str__(self):
         ret = "RedoLeftRecursion: "
         ret+= "added "+str(self.added_index)
         ret+= " alphas "+str(list(self.alpha_indexes))
+        ret+= " betas "+str(list(self.beta_indexes))
         return ret
 
 class Grammar:
@@ -375,7 +394,7 @@ class Grammar:
             self.rules[i] = Rule(z, beta+[z])
         added_index = len(self.rules)
         self.rules.append(Rule(z, []))       
-        redo = RedoLeftRecursion(added_index, alpha_indexes)
+        redo = RedoLeftRecursion(added_index, alpha_indexes, beta_indexes)
         self.__commit_transform__(redo)
         return True
     def try_removing_left_recursion(self):
@@ -431,8 +450,6 @@ class Grammar:
         if include_intermediates:
             int_decs = [dec_list[:]]
         for tpt in reversed(self.to_parent_transforms):
-            print dec_list
-            print tpt
             dec_list = tpt.transform(dec_list)
             if include_intermediates:
                 int_decs.append(dec_list[:])

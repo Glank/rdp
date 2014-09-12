@@ -2,6 +2,8 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{../umlet/}}
 
 \begin{document}
 
@@ -50,187 +52,22 @@ Z &\rightarrow b S' A\\
 Z &\rightarrow a B S' B S' A
 \end{align}
 
-The progression is simple and goes as follows:\\
-Grammar 1:
-\setcounter{equation}{0}
-\begin{align}
-S &\rightarrow A B\\
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B
-\end{align}
-Grammar 2:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B\\
-S &\rightarrow S A B
-\end{align}
-Grammar 3:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow ε
-\end{align}
-Grammar 4:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow ε\\
-A &\rightarrow a B S' A
-\end{align}
-Grammar 5:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow ε\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow ε\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z
-\end{align}
-Grammar 6:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow ε\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow ε\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B
-\end{align}
-Grammar 7:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow ε\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow ε\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B\\
-S' &\rightarrow a Z B S'
-\end{align}
-Grammar 8:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow ε\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow ε\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B\\
-S' &\rightarrow a Z B S'\\
-Z &\rightarrow b S' A\\
-Z &\rightarrow a B S' B S' A
-\end{align}
-Grammar 1:
-\setcounter{equation}{0}
-\begin{align}
-S &\rightarrow A B\\
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B
-\end{align}
-Grammar 2:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B\\
-S &\rightarrow S A B
-\end{align}
-Grammar 3:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-A &\rightarrow S A\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow \epsilon
-\end{align}
-Grammar 4:
-\setcounter{equation}{0}
-\begin{align}
-A &\rightarrow a\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow \epsilon\\
-A &\rightarrow a B S' A
-\end{align}
-Grammar 5:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow \epsilon\\
-B &\rightarrow b\\
-B &\rightarrow S B\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow \epsilon\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z
-\end{align}
-Grammar 6:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow \epsilon\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow A B S'\\
-S' &\rightarrow \epsilon\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B
-\end{align}
-Grammar 7:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow \epsilon\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow \epsilon\\
-Z &\rightarrow B S' A\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B\\
-S' &\rightarrow a Z B S'
-\end{align}
-Grammar 8:
-\setcounter{equation}{0}
-\begin{align}
-Z &\rightarrow \epsilon\\
-B &\rightarrow b\\
-S &\rightarrow a B S'\\
-S' &\rightarrow \epsilon\\
-A &\rightarrow a Z\\
-B &\rightarrow a B S' B\\
-S' &\rightarrow a Z B S'\\
-Z &\rightarrow b S' A\\
-Z &\rightarrow a B S' B S' A
-\end{align}
+So when the terminal stream "aabb" is parsed in the compiled
+grammar to the decision list $[3, 6, 2, 4, 2, 4]$ it can be transformed
+into the parent-grammar-equivalent decision list: $[1, 2, 5, 1, 2, 4, 4]$.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.8\textwidth,natwidth=458,natheight=444]{compiled_ex.pdf}
+    \caption{Compiled Grammar Parse Tree}
+    \label{fig:compiled_ex}
+\end{figure}
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.8\textwidth,natwidth=472,natheight=500]{decompiled_ex.pdf}
+    \caption{Parent Grammar Parse Tree}
+    \label{fig:decompiled_ex}
+\end{figure}
 
 \bibliography{notes}{}
 \bibliographystyle{plain}
