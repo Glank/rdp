@@ -9,14 +9,228 @@
 \author{Ernest Kirstein}
 \maketitle
 
-\section*{Basic Recursive Descent Parsing}
+\section*{Recursive Descent Parsing}
 
-To begin writing the parser, I used notes from ~\cite{lewis}.
+The core rules for my parser are built off of Dr. Lewis's notes \cite{lewis}.
+A grammar is define as an ordered collection of production rules.
+My parser uses context-free grammar rules, which are comprised of a
+'head' (the single-symbol left hand side of the production rule), and a 'tail'
+(one or more symbols comprising the right hand side of the production rule).
 
-\begin{align*}
-A &\rightarrow B\\
-B &\rightarrow C
-\end{align*}
+These grammars may be 'compiled' using the four procedures:
+factoring, substitution, removing left recursion, and removing useless
+rules. Let 'decision list' define an ordered list of production rule
+choices which produces a parse tree.
+As each of these four procedures produces a weakly equivalent grammar,
+there exists a mapping for any decision list in a compiled grammar
+back into a same-terminal-producing decision list in the pre-compiled (parent) grammer.
+My parser keeps track of these inverse transformation rules as performs
+it's compilation procedure so that a compiled grammar's decision list can be easily
+converted to the initial grammar's equavalent decision list. 
+
+Take this simple grammar for example:
+\begin{align}
+S &\rightarrow A B\\
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B
+\end{align}
+It compiles into the weakly equivalent grammar:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow \epsilon\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow \epsilon\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B\\
+S' &\rightarrow a Z B S'\\
+Z &\rightarrow b S' A\\
+Z &\rightarrow a B S' B S' A
+\end{align}
+
+The progression is simple and goes as follows:\\
+Grammar 1:
+\setcounter{equation}{0}
+\begin{align}
+S &\rightarrow A B\\
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B
+\end{align}
+Grammar 2:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B\\
+S &\rightarrow S A B
+\end{align}
+Grammar 3:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow ε
+\end{align}
+Grammar 4:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow ε\\
+A &\rightarrow a B S' A
+\end{align}
+Grammar 5:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow ε\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow ε\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z
+\end{align}
+Grammar 6:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow ε\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow ε\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B
+\end{align}
+Grammar 7:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow ε\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow ε\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B\\
+S' &\rightarrow a Z B S'
+\end{align}
+Grammar 8:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow ε\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow ε\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B\\
+S' &\rightarrow a Z B S'\\
+Z &\rightarrow b S' A\\
+Z &\rightarrow a B S' B S' A
+\end{align}
+Grammar 1:
+\setcounter{equation}{0}
+\begin{align}
+S &\rightarrow A B\\
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B
+\end{align}
+Grammar 2:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B\\
+S &\rightarrow S A B
+\end{align}
+Grammar 3:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+A &\rightarrow S A\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow \epsilon
+\end{align}
+Grammar 4:
+\setcounter{equation}{0}
+\begin{align}
+A &\rightarrow a\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow \epsilon\\
+A &\rightarrow a B S' A
+\end{align}
+Grammar 5:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow \epsilon\\
+B &\rightarrow b\\
+B &\rightarrow S B\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow \epsilon\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z
+\end{align}
+Grammar 6:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow \epsilon\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow A B S'\\
+S' &\rightarrow \epsilon\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B
+\end{align}
+Grammar 7:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow \epsilon\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow \epsilon\\
+Z &\rightarrow B S' A\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B\\
+S' &\rightarrow a Z B S'
+\end{align}
+Grammar 8:
+\setcounter{equation}{0}
+\begin{align}
+Z &\rightarrow \epsilon\\
+B &\rightarrow b\\
+S &\rightarrow a B S'\\
+S' &\rightarrow \epsilon\\
+A &\rightarrow a Z\\
+B &\rightarrow a B S' B\\
+S' &\rightarrow a Z B S'\\
+Z &\rightarrow b S' A\\
+Z &\rightarrow a B S' B S' A
+\end{align}
 
 \bibliography{notes}{}
 \bibliographystyle{plain}

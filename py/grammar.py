@@ -131,7 +131,7 @@ class Unfactor(DecListTransform):
             assert(len(factors)==0)
         return list(it())
     def __str__(self):
-        return "Unfactor: %d"%self.added_index
+        return "Unfactor: added %d"%self.added_index
 
 class Resubstitute(DecListTransform):
     def __init__(self, removed_index, subed_indexes, added_start):
@@ -150,7 +150,7 @@ class Resubstitute(DecListTransform):
                 yield i
         return list(iter())
     def __str__(self):
-        return "Resubstitute: %d,%r,%d"%(self.removed_index, self.subed_indexes, self.added_start)
+        return "Resubstitute: removed %d, substituted %r, added %d"%(self.removed_index, self.subed_indexes, self.added_start)
 
 class Unremove(DecListTransform):
     def __init__(self, removed_indexes):
@@ -168,11 +168,12 @@ class Unremove(DecListTransform):
         return "Unremove: %r"%(self.removed_indexes)
 
 class RedoLeftRecursion(DecListTransform):
-    def __init__(self, added_index, alpha_indexes):
+    def __init__(self, added_index, alpha_indexes, beta_indexes):
         #assumes added_index is the max index
         self.added_index = added_index
         self.alpha_indexes = set(alpha_indexes)
     def transform(self, dec_list):
+        print '*',dec_list
         def iter():
             rec_stack = None
             for i in dec_list:
@@ -187,11 +188,13 @@ class RedoLeftRecursion(DecListTransform):
                         while rec_stack:
                             yield rec_stack.pop()
                         rec_stack = None
-        return list(iter())
+        ret = list(iter())
+        print '*',ret
+        return ret
     def __str__(self):
-        ret = "RedoLeftRecursion - "
-        ret+= str(self.added_index)+', '
-        ret+= str(self.alpha_indexes)
+        ret = "RedoLeftRecursion: "
+        ret+= "added "+str(self.added_index)
+        ret+= " alphas "+str(list(self.alpha_indexes))
         return ret
 
 class Grammar:
@@ -428,6 +431,8 @@ class Grammar:
         if include_intermediates:
             int_decs = [dec_list[:]]
         for tpt in reversed(self.to_parent_transforms):
+            print dec_list
+            print tpt
             dec_list = tpt.transform(dec_list)
             if include_intermediates:
                 int_decs.append(dec_list[:])

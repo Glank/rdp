@@ -1,63 +1,64 @@
+# -*- coding: latin-1 -*-
 from grammar import *
 from streams import *
 from terms import *
 from parser import *
 
 S = Symbol('S')
-NP = Symbol('NP')
-VP = Symbol('VP')
-AVP = Symbol('AVP')
-N = Symbol('N')
-V = Symbol('V')
-DP = Symbol('DP')
-Det = Symbol('Det')
-Adj = Symbol('Adj')
-Adv = Symbol('Adv')
+A = Symbol('A')
+B = Symbol('B')
+a = StringTerminal('a')
+b = StringTerminal('b')
 rules = [
-    Rule(S, [DP, VP]),
-    Rule(DP, [Det, NP]),
-    Rule(DP, [NP]),
-    Rule(NP, [Adj, NP]),
-    Rule(NP, [N]),
-    Rule(VP, [V]),
-    Rule(Det, [WordTerminal("the")]),
-    Rule(Adj, [WordTerminal("fine")]),
-    Rule(N, [WordTerminal("fine")]),
-    Rule(N, [WordTerminal("cook")]),
-    Rule(V, [WordTerminal("gave")]),
+    Rule(S, [A,B]),
+    Rule(A, [a]),
+    Rule(A, [S,A]),
+    Rule(B, [b]),
+    Rule(B, [S,B]),
 ]
-gram = Grammar(rules, store_intermediates=True)
+gram = Grammar(rules)
 print gram
-#TODO: work's uncompiled, but not compiled
 gram.compile()
+print "*"*35
 print gram
-#print gram
-stream = WordStream("the fine cook gave".split())
-parser = Parser(stream, gram)
-parser.verbose=True
-parsed =  parser.parse_full()
-print parsed
-if parsed:
-    print parser
-    dec_list, terms = parser.get_generation_lists()
-    print terms
-    print dec_list
-    if gram.parent is not None:
-        print gram.transform_to_parent(dec_list)
-    if False:
-        decs = gram.transform_to_parent(dec_list, include_intermediates=True)
-        decs.reverse()
-        print len(gram.to_parent_transforms)
-        for i in xrange(len(decs)):
-            print '*'*20
-            print i
-            dec = decs[i]
-            g = gram.intermediates[i]
-            print dec    
-            print g
-            print list(n.symbol for n in build_tree(None, 0, g, dec).nonepsilon_terms())
-            if i<len(gram.to_parent_transforms):
-                print gram.to_parent_transforms[i]
-    tree = parser.to_parse_tree()
-    print tree
+print "*"*35
 
+
+stream = StringStream("aabb")
+parser = Parser(stream, gram)
+print parser.parse_full()
+dec_list,_ = parser.get_generation_lists()
+print dec_list
+print len(gram.to_parent_transforms)
+print gram.transform_to_parent(dec_list)
+exit()
+dec_lists = gram.transform_to_parent(
+    dec_list, include_intermediates=True
+)
+for dl in dec_lists:
+    print dl
+exit()
+
+
+exit()
+
+for trans in gram.to_parent_transforms:
+    print trans
+
+exit()
+for i, g in enumerate(gram.intermediates):
+    latex = str(g)
+    lines = latex.split('\n')
+    lines = [l[l.index('\t')+1:] for l in lines]
+    latex = "\\\\\n".join(lines)
+    latex = latex.replace("->","&\\rightarrow")
+    latex = latex.replace("_0","Z")
+    latex = latex.replace("_S0","S'")
+    latex = latex.replace("'a'","a")
+    latex = latex.replace("'b'","b")
+    latex = latex.replace("ε","\\epsilon")
+    latex = "\\begin{align}\n"+latex
+    latex = "\\setcounter{equation}{0}\n"+latex
+    latex+= "\n\\end{align}"
+    print "Grammar %d:"%(i+1)
+    print latex

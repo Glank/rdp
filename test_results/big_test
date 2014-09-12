@@ -1,0 +1,38 @@
+0)	S -> DP VP
+1)	DP -> Det NP
+2)	DP -> NP
+3)	NP -> Adj NP
+4)	NP -> N
+5)	VP -> V
+6)	Det -> 'the'
+7)	Adj -> 'fine'
+8)	N -> 'fine'
+9)	N -> 'cook'
+10)	V -> 'gave'
+0)	NP -> N
+1)	VP -> V
+2)	N -> 'fine'
+3)	N -> 'cook'
+4)	V -> 'gave'
+5)	NP -> 'fine' NP
+6)	S -> 'the' NP VP
+7)	S -> 'fine' NP VP
+8)	S -> 'fine' VP
+9)	S -> 'cook' VP
+[] [(S,0),('the',1),(NP,1),('fine',1),(NP,0),(N,1),('cook',1),(VP,0),(V,0),('gave',1)] 4
+[['the'], ['fine'], ['cook'], ['gave']]
+[6, 5, 0, 3, 1, 4]
+[0, 1, 6, 3, 7, 4, 9, 5, 10]
+S
+  DP
+    Det
+      'the':['the']
+    NP
+      Adj
+        'fine':['fine']
+      NP
+        N
+          'cook':['cook']
+  VP
+    V
+      'gave':['gave']

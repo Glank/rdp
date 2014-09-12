@@ -4,6 +4,45 @@ from terms import *
 from parser import *
 import os.path
 
+def big_test():
+    S = Symbol('S')
+    NP = Symbol('NP')
+    VP = Symbol('VP')
+    AVP = Symbol('AVP')
+    N = Symbol('N')
+    V = Symbol('V')
+    DP = Symbol('DP')
+    Det = Symbol('Det')
+    Adj = Symbol('Adj')
+    Adv = Symbol('Adv')
+    rules = [
+        Rule(S, [DP, VP]),
+        Rule(DP, [Det, NP]),
+        Rule(DP, [NP]),
+        Rule(NP, [Adj, NP]),
+        Rule(NP, [N]),
+        Rule(VP, [V]),
+        Rule(Det, [WordTerminal("the")]),
+        Rule(Adj, [WordTerminal("fine")]),
+        Rule(N, [WordTerminal("fine")]),
+        Rule(N, [WordTerminal("cook")]),
+        Rule(V, [WordTerminal("gave")]),
+    ]
+    gram = Grammar(rules, store_intermediates=True)
+    yield str(gram)
+    gram.compile()
+    yield str(gram)
+    stream = WordStream("the fine cook gave".split())
+    parser = Parser(stream, gram)
+    parsed =  parser.parse_full()
+    yield parser
+    dec_list, terms = parser.get_generation_lists()
+    yield str(terms)
+    yield str(dec_list)
+    yield str(gram.transform_to_parent(dec_list))
+    tree = parser.to_parse_tree()
+    yield str(tree)
+
 def decompile_test():
     yield "Decompile test."
     S = Symbol('S')
@@ -396,6 +435,7 @@ if __name__=='__main__':
         parsetree_test,
         decompile_test,
         parsetree_complied_test,
+        big_test,
     ]
     for test in tests:
         print test.__name__
