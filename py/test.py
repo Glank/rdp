@@ -3,62 +3,48 @@ from grammar import *
 from streams import *
 from terms import *
 from parser import *
+import re
 
-S = Symbol('S')
-A = Symbol('A')
-B = Symbol('B')
-a = StringTerminal('a')
-b = StringTerminal('b')
+command = Symbol('cmd')
+line_comment = RegexTerminal(r'--.*?\n', flags=re.MULTILINE, name="line_comment")
+block_comment = RegexTerminal(r'/\*.*?\*/', flags=re.MULTILINE|re.DOTALL, name="block_comment")
+shell_cmd = RegexTerminal(r'\!.*?\n', flags=re.MULTILINE, name="shell_cmd")
+cmd_body = Symbol('cmd_body')
+semi_colon = StringTerminal(";")
+not_block_start = RegexTerminal("[^;']", name="not_block_start")
+string = Symbol('str')
+esc_ap = StringTerminal("''")
+del_ap = StringTerminal("'")
+not_ap = RegexTerminal(r"[^']", name="not_ap")
+str_body_char = Symbol('str_body_char')
+str_body = Symbol('str_body')
 rules = [
-    Rule(S, [A,B]),
-    Rule(A, [a]),
-    Rule(A, [S,A]),
-    Rule(B, [b]),
-    Rule(B, [S,B]),
+    Rule(command, [cmd_body]),
+    Rule(cmd_body, [line_comment, cmd_body]),
+    Rule(cmd_body, [shell_cmd, cmd_body]),
+    Rule(cmd_body, [block_comment, cmd_body]),
+    Rule(cmd_body, [string, cmd_body]),
+    Rule(string, [del_ap, str_body, del_ap]),
+    Rule(str_body_char, [esc_ap]),
+    Rule(str_body_char, [not_ap]),
+    Rule(str_body, [str_body_char, str_body]),
+    Rule(str_body, []),
+    Rule(cmd_body, [not_block_start, cmd_body]),
+    Rule(cmd_body, []),
 ]
-gram = Grammar(rules)
+gram = Grammar(rules, start=command)
 print gram
 gram.compile()
-print "*"*35
-print gram
-print "*"*35
 
+def is_mysql_command(s):
+    stream = StringStream(s)
+    parser = Parser(stream, gram)
+    if parser.parse_partial():
+        return s[:stream.index]
+    return False
 
-stream = StringStream("aabb")
-parser = Parser(stream, gram)
-print parser.parse_full()
-dec_list,_ = parser.get_generation_lists()
-print dec_list
-print len(gram.to_parent_transforms)
-print gram.transform_to_parent(dec_list)
-exit()
-dec_lists = gram.transform_to_parent(
-    dec_list, include_intermediates=True
-)
-for dl in dec_lists:
-    print dl
-exit()
-
-
-exit()
-
-for trans in gram.to_parent_transforms:
-    print trans
-
-exit()
-for i, g in enumerate(gram.intermediates):
-    latex = str(g)
-    lines = latex.split('\n')
-    lines = [l[l.index('\t')+1:] for l in lines]
-    latex = "\\\\\n".join(lines)
-    latex = latex.replace("->","&\\rightarrow")
-    latex = latex.replace("_0","Z")
-    latex = latex.replace("_S0","S'")
-    latex = latex.replace("'a'","a")
-    latex = latex.replace("'b'","b")
-    latex = latex.replace("ε","\\epsilon")
-    latex = "\\begin{align}\n"+latex
-    latex = "\\setcounter{equation}{0}\n"+latex
-    latex+= "\n\\end{align}"
-    print "Grammar %d:"%(i+1)
-    print latex
+cmd = """Select * from some_table /* with
+multi-line block comments; and
+statemens */ with reasons --- comments;
+and other stuff 'like;' this.;;"""
+print is_mysql_command(cmd)

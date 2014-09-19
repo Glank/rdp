@@ -55,7 +55,7 @@ def language_example():
     gram = Grammar(core_rules+word_rules)
     gram.compile()
     #and we can try parsing a stream
-    stream = WordStream("the fine cook gave lazy john a cold sandwich".split())
+    stream = WordStream("the fine cook hesitantly gave lazy john a cold sandwich".split())
     parser = Parser(stream, gram)
     parsed =  parser.parse_full()
     if parsed:

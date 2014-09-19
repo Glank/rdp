@@ -33,6 +33,8 @@ class Parser:
     def __advance__(self):
         if self.verbose:
             print '>',self
+            print self.get_generation_lists()[1]
+            print self.stream.get_buffer()
         if not self.todo_stack:
             return False
         symbol, args = self.todo_stack.pop()
@@ -83,6 +85,8 @@ class Parser:
     def __backtrack__(self):
         if self.verbose:
             print '<',self
+            print self.get_generation_lists()[1]
+            print self.stream.get_buffer()
         if not self.parsed_stack:
             return False
         symbol, args = self.parsed_stack.pop()
@@ -91,6 +95,12 @@ class Parser:
             rule = rules[args]
             assert(len(rule.tail)>0)
             del self.todo_stack[-len(rule.tail):]
+            #reset terminals
+            def reset(symbol, arg):
+                if symbol.is_terminal():
+                    return symbol,None
+                return symbol,arg
+            self.todo_stack = [reset(*n) for n in self.todo_stack]
         self.todo_stack.append((symbol,args))
         return True
     def __iterate__(self):

@@ -36,6 +36,8 @@ class StringStream(ParsingStream):
         assert(self.index>=0)
     def finished(self):
         return self.index+self.off==len(self.string)
+    def get_buffer(self):
+        return buffer(self.string, self.index+self.off)
     def reset(self):
         self.index = 0
     def substream(self):

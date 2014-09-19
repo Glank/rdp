@@ -1,6 +1,8 @@
 from grammar import *
 from streams import *
 from parser import *
+import re
+
 
 class StringTerminal(TerminalSymbol):
     def try_consume(self, stream):
@@ -8,6 +10,35 @@ class StringTerminal(TerminalSymbol):
         if stream.has(self.name):
             return [(len(self.name),self.name)]
         return False
+    def __str__(self):
+        return repr(self.name)
+
+class RegexTerminal(TerminalSymbol):
+    def __init__(self, regex, flags=0, name=None):
+        self.regex_string = regex
+        self.flags = flags
+        self.regex = re.compile(regex, flags=flags)
+        if name is None:
+            name = "/"+regex+"/"
+            if self.flags&re.M:
+                name+='m'
+            if self.flags&re.I:
+                name+='i'
+        TerminalSymbol.__init__(self, name)
+    def try_consume(self, stream):
+        assert(isinstance(stream, StringStream))
+        m = self.regex.match(stream.get_buffer())
+        if not m:
+            return False
+        match = m.groups()
+        return [(len(m.group(0)), match)]
+    def __str__(self):
+        return self.name
+    def __deepcopy__(self, memo):
+        return RegexTerminal(
+            deepcopy(self.regex_string,memo),
+            deepcopy(self.flags,memo)
+        )
 
 class WordTerminal(TerminalSymbol):
     def try_consume(self, stream):

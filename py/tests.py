@@ -4,6 +4,52 @@ from terms import *
 from parser import *
 import os.path
 
+def mysql_str_test():
+    string = Symbol('str')
+    esc_ap = StringTerminal("''")
+    del_ap = StringTerminal("'")
+    not_ap = RegexTerminal(r"[^']")
+    body_char = Symbol('body_char')
+    body = Symbol('body')
+    rules = [
+        Rule(string, [del_ap, body, del_ap]),
+        Rule(body_char, [esc_ap]),
+        Rule(body_char, [not_ap]),
+        Rule(body, [body_char, body]),
+        Rule(body, []),
+    ]
+    gram = Grammar(rules, start=string)
+    gram.compile()
+
+    def is_mysql_string(s):
+        stream = StringStream(s)
+        parser = Parser(stream, gram)
+        return parser.parse_full()
+
+    yield is_mysql_string("'test'")
+    yield is_mysql_string("''test'")
+    yield is_mysql_string("'''test'''")
+    yield is_mysql_string("''")
+    yield is_mysql_string("'''")
+
+def regex_test():
+    S = Symbol('S')
+    A = Symbol('A')
+    dot = StringTerminal('.')
+    letters = RegexTerminal('([a-zA-Z]+)')
+    rules = [
+        Rule(S, [A, letters]),
+        Rule(A, []),
+        Rule(A, [letters, dot, A]),
+    ]
+    gram = Grammar(rules)
+    gram.compile()
+    stream = StringStream("this.is.a.test")
+    parser = Parser(stream, gram)
+    yield parser.parse_full()
+    yield parser
+    yield parser.to_parse_tree()
+
 def redo_left_recursion_big_test():
     S = Symbol('S')
     A = Symbol('A')
@@ -464,6 +510,8 @@ if __name__=='__main__':
         parsetree_complied_test,
         big_test,
         redo_left_recursion_big_test,
+        regex_test,
+        mysql_str_test,
     ]
     for test in tests:
         print test.__name__
