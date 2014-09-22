@@ -73,7 +73,7 @@ def redo_left_recursion_big_test():
     stream = StringStream("aabb")
     parser = Parser(stream, gram)
     parser.parse_full()
-    dec_list,_ = parser.get_generation_lists()
+    dec_list,_,_ = parser.get_generation_lists()
     yield dec_list
     yield gram.transform_to_parent(dec_list)
 
@@ -109,7 +109,7 @@ def big_test():
     parser = Parser(stream, gram)
     parsed =  parser.parse_full()
     yield parser
-    dec_list, terms = parser.get_generation_lists()
+    dec_list, terms, _ = parser.get_generation_lists()
     yield str(terms)
     yield str(dec_list)
     yield str(gram.transform_to_parent(dec_list))
@@ -330,7 +330,7 @@ def rdp_test():
        return parser.stream.index>=3
     yield parser.parse_filtered(is_match)
     yield parser
-    decs, terms = parser.get_generation_lists()
+    decs, terms, _ = parser.get_generation_lists()
     yield decs
     yield terms
     #rec = "".join(terms)

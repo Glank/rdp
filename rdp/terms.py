@@ -3,7 +3,6 @@ from streams import *
 from parser import *
 import re
 
-
 class StringTerminal(TerminalSymbol):
     def try_consume(self, stream):
         assert(isinstance(stream, StringStream))
@@ -37,7 +36,36 @@ class RegexTerminal(TerminalSymbol):
     def __deepcopy__(self, memo):
         return RegexTerminal(
             deepcopy(self.regex_string,memo),
-            deepcopy(self.flags,memo)
+            flags=deepcopy(self.flags,memo),
+            name=deepcopy(self.name,memo)
+        )
+
+class KeywordTerminal(RegexTerminal):
+    def __init__(self, keyword, case_sensitive=False):
+        RegexTerminal.__init__(
+            self,
+            r'(\w+)',
+            name = keyword
+        )
+        self.case_sensitive = case_sensitive
+    def try_consume(self, stream):
+        potential_ret = RegexTerminal.try_consume(self, stream)
+        if potential_ret is False:
+            return False
+        assert(len(potential_ret)==1)
+        length, match = potential_ret[0]
+        assert(len(match)==1)
+        if self.case_sensitive:
+            if match[0]==self.name:
+                return [(length, match[0])]
+        else:
+            if match[0].lower()==self.name.lower():
+                return [(length, match[0])]
+        return False
+    def __deepcopy__(self, memo):
+        return KeywordTerminal(
+            deepcopy(self.name,memo),
+            deepcopy(self.case_sensitive,memo)
         )
 
 class WordTerminal(TerminalSymbol):
@@ -62,9 +90,7 @@ class RepeatTerminal(ComplexTerminalSymbol):
         if self.gready:
             rules.reverse()
         self.subgram = Grammar(rules, start=S)
-        TerminalSymbol.__init__(self, str(self))
-    def subgrammar(self):
-        return self.subgram
+        ComplexTerminalSymbol.__init__(self, str(self), self.subgram)
     def try_consume(self, stream):
         substream = stream.substream()
         subparser = Parser(substream, self.subgram)

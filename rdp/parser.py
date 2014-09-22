@@ -2,6 +2,7 @@
 
 from grammar import *
 from streams import ParsingStream
+from itertools import ifilter
 
 def build_tree(parent, offset, grammar, dec_list):
     rule = grammar.rules[dec_list[offset]]
@@ -139,14 +140,19 @@ class Parser:
     def get_generation_lists(self):
         decision_list = []
         term_instances = []
+        term_ranges = []
+        i = 0
         for symbol, args in self.parsed_stack:
             if symbol.is_terminal():
                 if args[1] is not None:
+                    ni = i+args[0]
                     term_instances.append(args[1])
+                    term_ranges.append((i,ni))
+                    i=ni
             else:
                 rule = self.grammar.rules_by_head(symbol)[args]
                 decision_list.append(self.grammar.index(rule))
-        return decision_list, term_instances
+        return decision_list, term_instances, term_ranges
     def __str__(self):
         def tostr(a,b):
             if b is None:
@@ -160,15 +166,16 @@ class Parser:
         ret+= str(self.stream.index)
         return ret
     def to_parse_tree(self, expand_complex=True):
-        decs, terms = self.get_generation_lists()
+        decs, terms, ranges = self.get_generation_lists()
         grammar = self.grammar
         if self.grammar.parent is not None:
             grammar = self.grammar.parent
             decs = self.grammar.transform_to_parent(decs)    
         ret = build_tree(None, 0, grammar, decs)
         off = 0
-        for node in ret.nonepsilon_terms():
+        for node in list(ret.nonepsilon_terms()):
             node.instance = terms[off]
+            node.range = ranges[off]
             if node.symbol.is_complex() and expand_complex:
                 node.expand()
             off+=1
@@ -181,17 +188,24 @@ class ParseNode:
         self.parent = None
         #used if terminal
         self.instance = None
+        self.range = None
         #used if not terminal
         self.prev = None
         self.next = None
+    def iter_nodes(self, pfilter=None):
+        if pfilter is not None and not pfilter(self):
+            return
+        yield self
+        for child in self.children:
+            for node in child.iter_nodes(pfilter=pfilter):
+                yield node
     def nonepsilon_terms(self):
-        if not self.children:
-            if self.symbol!=Epsilon():
-                yield self
-        else:
-            for child in self.children:
-                for net in child.nonepsilon_terms():
-                    yield net
+        e = Epsilon()
+        def net(n):
+            if n.children:
+                return False
+            return n.symbol!=e
+        return ifilter(net, self.iter_nodes())
     def expand(self):
         assert(self.symbol.is_complex())
         subtree = self.instance.to_parse_tree()

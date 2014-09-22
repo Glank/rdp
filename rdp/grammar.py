@@ -48,16 +48,6 @@ class TerminalSymbol(Symbol):
         correspond to this terminal."""
         raise NotImplementedError()
 
-class ComplexTerminalSymbol(TerminalSymbol):
-    """A ComplexTerminalSymbol is one that returns instances based
-    on a subgrammar. This is usefull in defining mildly context
-    sensitive grammars. 
-    The instance values returned by try_consume for a 
-    ComplexTerminalSymbol should be instances of a parser.
-    """
-    def subgrammar(self):
-        """Returns the grammar that this parser uses."""
-        raise NotImplementedError()
 
 class Epsilon(TerminalSymbol):
     def __init__(self):
@@ -465,3 +455,24 @@ class Grammar:
         it = ('%d)\t%s'%(i,str(r)) for i,r in enumerate(self.rules))
         return '\n'.join(it)
 
+from parser import Parser
+class ComplexTerminalSymbol(TerminalSymbol):
+    """A ComplexTerminalSymbol is one that returns instances based
+    on a subgrammar. This is usefull in defining mildly context
+    sensitive grammars. 
+    The instance values returned by try_consume for a 
+    ComplexTerminalSymbol should be instances of a parser.
+    """
+    def __init__(self, name, subgram):
+        self.subgram = subgram
+        TerminalSymbol.__init__(self, name)
+    def subgrammar(self):
+        """Returns the grammar that this parser uses."""
+        return self.subgram
+    def try_consume(self, stream):
+        substream = stream.substream()
+        subparser = Parser(substream, self.subgram)
+        def ret():
+            for p in subparser.parse_all():
+                yield p.stream.index,p
+        return ret()

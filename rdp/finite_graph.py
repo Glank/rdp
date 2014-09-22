@@ -4,6 +4,8 @@ class DirectedGraph():
         self.edges = set()
         self.forward = {}
         self.backward = {}
+    def __len__(self):
+        return len(self.vertices)
     def add_vertex(self, vertex):
         if self.has_vertex(vertex):
             return
