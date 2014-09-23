@@ -33,13 +33,13 @@ def __get_mysql_script_grammar__():
         Rule(cmd_body, [SHELL_CMD, cmd_body]),
         Rule(cmd_body, [BLOCK_COMMENT, cmd_body]),
         Rule(cmd_body, [string, cmd_body]),
+        Rule(cmd_body, [not_block_start, cmd_body]),
+        Rule(cmd_body, []),
         Rule(string, [del_ap, str_body, del_ap]),
         Rule(str_body_char, [esc_ap]),
         Rule(str_body_char, [not_ap]),
         Rule(str_body, [str_body_char, str_body]),
         Rule(str_body, []),
-        Rule(cmd_body, [not_block_start, cmd_body]),
-        Rule(cmd_body, []),
     ]
     gram = Grammar(rules)
     gram.compile()

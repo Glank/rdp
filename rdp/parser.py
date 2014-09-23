@@ -199,6 +199,10 @@ class ParseNode:
         for child in self.children:
             for node in child.iter_nodes(pfilter=pfilter):
                 yield node
+    def find_node(self, match_funct):
+        for node in self.iter_nodes():
+            if match_funct(node):
+                return node
     def nonepsilon_terms(self):
         e = Epsilon()
         def net(n):

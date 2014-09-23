@@ -23,6 +23,8 @@ class RegexTerminal(TerminalSymbol):
                 name+='m'
             if self.flags&re.I:
                 name+='i'
+            if self.flags&re.S:
+                name+='s'
         TerminalSymbol.__init__(self, name)
     def try_consume(self, stream):
         assert(isinstance(stream, StringStream))
