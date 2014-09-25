@@ -29,29 +29,28 @@ class DirectedGraph():
         """Returns either the path from start to end,
         the path of the first cycle found, or None if the end
         is not found."""
-        visited = set()
+        path_set = set()
         path = []
         PATH_POP = object()
         to_search = [start]
-        while to_search:
+        while True:
             cur = to_search.pop()
             while cur is PATH_POP:
-                path.pop()
+                path_set.remove(path.pop())
                 if not to_search:
                     return None
                 cur = to_search.pop()
             if cur==end and path:
                 path.append(cur)
                 return path
-            if cur in path:
+            if cur in path_set:
                 del path[:path.index(cur)]
                 path.append(cur)
                 return path
             path.append(cur)
-            visited.add(cur)
+            path_set.add(cur)
             to_search.append(PATH_POP)
             to_search.extend(self.forward[cur])
-        return None
     def is_cyclic(self):
         if not self.vertices:
             return False
@@ -84,22 +83,3 @@ class DirectedGraph():
         return not bool(self.forward[v])
     def leaves(self):
         return set(v for v in self.vertices if self.is_leaf(v))
-
-if __name__=='__main__':
-    g = DirectedGraph()
-    for v in 'abcdefg':
-        g.add_vertex(v)
-    edges = [
-        ('a','b'),  
-        ('b','c'),
-        ('b','d'),
-        ('d','e'),
-        ('d','f'),
-        ('f','g'),
-        ('g','b'),
-    ]
-    for e in edges:
-        g.add_edge(*e)
-    print g.dfs('a','g')
-    print g.is_cyclic()
-    print g.leaves()

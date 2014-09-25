@@ -1,8 +1,139 @@
-from grammar import *
-from streams import *
-from terms import *
-from parser import *
+from rdp import *
 import os.path
+
+def comp_terminal_test():
+    aob = Symbol('a|b')
+    a,b = StringTerminal('a'), StringTerminal('b')
+    rules = [
+        Rule(aob, [a]),
+        Rule(aob, [b]),
+    ]
+    g = Grammar(rules, start=aob)
+    g.compile()
+    ct = ComplexTerminalSymbol('a|b', g)
+    yield ct
+    yield ct.subgrammar()
+    yield '*'*20
+    S = Symbol('S')
+    rules = [
+        Rule(S, [ct,S]),
+        Rule(S, []),
+    ]
+    g = Grammar(rules)
+    g.compile()
+    yield g
+    stream = StringStream('abaabba')
+    parser = Parser(stream, g)
+    yield parser.parse_full()
+    yield parser
+
+def grammar_tests():
+    S = Symbol('S')
+    A = Symbol('A')
+    B = Symbol('B')
+    rules = [
+        Rule(S, [A,A]),
+    ]
+    g = Grammar(rules)
+    yield g.is_parseable()
+    yield g.__substitute__(rules[0])
+    t0 = TerminalSymbol('t0')
+    t1 = TerminalSymbol('t1')
+    rules = [
+        Rule(S, [A,B]),
+        Rule(A, [t0, t0]),
+        Rule(A, [t0, t1]),
+        Rule(B, [t1, t0]),
+        Rule(B, [t1, t1]),
+    ]
+    g = Grammar(rules)
+    yield str(g)
+    yield '*'*20
+    g.compile()
+    yield str(g)
+    yield g.transform_to_parent(
+        [5,0,4,2], include_intermediates=True
+    )
+
+def transform_tests():
+    t = DecListTransform()
+    try:
+        t.transform(None)
+        yield 'reached'
+    except NotImplementedError as e:
+        yield 'not implemented'
+    uf = Unfactor(0,[1,2,3,4])
+    yield str(uf)
+    rs = Resubstitute(0,[1,2,3,4],5)
+    yield str(rs)
+    ur = Unremove([1,2,3])
+    yield str(ur)
+    rlr = RedoLeftRecursion(0, [1,2,3], [4,5,6])
+    yield str(rlr)
+
+def symbol_tests():
+    s = Symbol('S')
+    yield repr(s)
+    t = TerminalSymbol('t')
+    yield repr(t)
+    try:
+        t.try_consume(None)
+        yield 'reached'
+    except NotImplementedError as e:
+        yield 'not implemented'
+    try:
+        t.get_instance()
+        yield 'reached'
+    except NotImplementedError as e:
+        yield 'not implemented'
+    yield repr(Epsilon())
+
+def rule_test():
+    s = Symbol('S')
+    r = Rule(s, [s, s])
+    yield r.is_left_recursive()
+    yield r==r
+    yield r!=r
+
+def finite_graph_first_test():
+    g = DirectedGraph()
+    for v in 'abcdefg':
+        g.add_vertex(v)
+    edges = [
+        ('a','b'),  
+        ('b','c'),
+        ('b','d'),
+        ('d','e'),
+        ('d','f'),
+        ('f','g'),
+        ('g','b'),
+    ]
+    for e in edges:
+        g.add_edge(*e)
+    yield g.dfs('a','g')
+    yield g.is_cyclic()
+    yield g.leaves()
+
+def finite_graph_test():
+    yield "Finite graph test."
+    g = DirectedGraph()
+    yield g.is_cyclic()
+    g.add_vertex('a')
+    g.add_vertex('b')
+    g.add_vertex('c')
+    g.add_vertex('d')
+    g.add_vertex('e')
+    g.add_vertex('f')
+    g.add_edge('a','b')
+    g.add_edge('b','c')
+    g.add_edge('c','d')
+    g.add_edge('d','b')
+    g.add_edge('e','f')
+    yield len(g)
+    yield "a->e", g.dfs('a','e')
+    yield "e->a", g.dfs('e','a')
+    yield "f->a", g.dfs('f','a')
+    yield 'Roots:', g.roots()
 
 def mysql_str_test():
     string = Symbol('str')
@@ -374,29 +505,6 @@ def resubstitute_test():
     yield "Parent Grammar:"
     yield gram
     assert(gram.try_substituting())
-    yield "Factored Grammar:"
-    yield gram
-    yield "Reversions:"
-    for test in [[2],[3]]:
-        parent_v = gram.transform_to_parent(test)
-        yield "%s -> %s"%(str(test), str(parent_v))
-
-def resubstitute_test():
-    yield "Resubstitute Test."
-    S = Symbol('S')
-    N = Symbol('N')
-    a = StringTerminal('a')
-    b = StringTerminal('b')
-    c = StringTerminal('c')
-    rules = [
-        Rule(S, [N,c]),
-        Rule(N, [a]),
-        Rule(N, [b]),
-    ]
-    gram = Grammar(rules)
-    yield "Parent Grammar:"
-    yield gram
-    assert(gram.try_substituting())
     yield "Substituted Grammar:"
     yield gram
     yield "Reversions:"
@@ -490,7 +598,7 @@ def ask_yn(question):
     return answer in ['y','yes']
 
 if __name__=='__main__':
-    test_dir = '../test_results'
+    test_dir = 'test_results'
     tests = [
         factor_test,
         substitute_test,
@@ -512,6 +620,13 @@ if __name__=='__main__':
         redo_left_recursion_big_test,
         regex_test,
         mysql_str_test,
+        finite_graph_test,
+        finite_graph_first_test,
+        rule_test,
+        symbol_tests,
+        transform_tests,
+        grammar_tests,
+        comp_terminal_test,
     ]
     for test in tests:
         print test.__name__
@@ -521,6 +636,8 @@ if __name__=='__main__':
         if old_results != results:
             print "!!! Old test results do not match: !!!"
             print results
+            print "#"*20+'Old Results'+'#'*20
+            print old_results
             if ask_yn("Is this new output valid? (y/n)"):
                 with open(fn,'w') as f:
                     f.write(results)
@@ -528,3 +645,4 @@ if __name__=='__main__':
                 print "Test failed."
                 exit()
     print "All tests passed!"
+    

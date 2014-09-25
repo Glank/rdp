@@ -1,0 +1,5 @@
+not implemented
+Unfactor: added 0, factored set([1, 2, 3, 4])
+Resubstitute: removed 0, substituted [1, 2, 3, 4], added 5
+Unremove: [1, 2, 3]
+RedoLeftRecursion: added 0 alphas [1, 2, 3] betas [4, 5, 6]

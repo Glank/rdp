@@ -1,0 +1,7 @@
+Finite graph test.
+False
+6
+('a->e', ['b', 'c', 'd', 'b'])
+('e->a', None)
+('f->a', None)
+('Roots:', set(['a', 'e']))

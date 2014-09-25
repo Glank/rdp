@@ -121,7 +121,7 @@ class Unfactor(DecListTransform):
             assert(len(factors)==0)
         return list(it())
     def __str__(self):
-        return "Unfactor: added %d"%self.added_index
+        return "Unfactor: added %d, factored %r"%(self.added_index, self.factor_indexes)
 
 class Resubstitute(DecListTransform):
     def __init__(self, removed_index, subed_indexes, added_start):
@@ -140,7 +140,9 @@ class Resubstitute(DecListTransform):
                 yield i
         return list(iter())
     def __str__(self):
-        return "Resubstitute: removed %d, substituted %r, added %d"%(self.removed_index, self.subed_indexes, self.added_start)
+        return "Resubstitute: removed %d, substituted %r, added %d"%(
+            self.removed_index, self.subed_indexes, self.added_start
+        )
 
 class Unremove(DecListTransform):
     def __init__(self, removed_indexes):
@@ -207,9 +209,7 @@ class RedoLeftRecursion(DecListTransform):
         return ret
 
 class Grammar:
-    def __init__(self, rules=None, start=Symbol('S'), store_intermediates=False):
-        if rules is None:
-            rules = []
+    def __init__(self, rules, start=Symbol('S'), store_intermediates=False):
         assert(isinstance(rules, list))
         assert(isinstance(start, Symbol))
         self.start = start
