@@ -6,3 +6,4 @@ tex/*.dvi
 tex/*.log
 tex/*.pdf
 *.swp
+.coverage
