@@ -1,6 +1,57 @@
 from rdp import *
 import os.path
 
+def pfilter_and_find_test():
+    S = Symbol('S')
+    A = Symbol('A')
+    a,b = StringTerminal('a'), StringTerminal('b')
+    rules = [
+        Rule(S, [A,b,S]),
+        Rule(S, []),
+        Rule(A, [a]),
+        Rule(A, [a,a]),
+        Rule(A, [a,a,a]),
+    ]
+    gram = Grammar(rules)
+    stream = StringStream('aabaaabab')
+    parser = Parser(stream, gram)
+    def pfilter(x):
+        return x.symbol!=b
+    yield parser.parse_full()
+    root = parser.to_parse_tree()
+    for node in root.iter_nodes(pfilter=pfilter):
+        yield str(node)
+    yield '*'*20
+    yield root.find_node(lambda x:x.symbol==A)
+
+def not_even_partial_test():
+    S = Symbol('S')
+    a = StringTerminal('a')
+    rules = [
+        Rule(S, [a,a,a])
+    ]
+    gram = Grammar(rules)
+    stream = StringStream('aa')
+    parser = Parser(stream, gram)
+    yield parser.parse_partial()
+
+def accept_empty_test():
+    S = Symbol('S')
+    rules = [
+        Rule(S, []),
+    ]
+    gram = Grammar(rules)
+    stream = StringStream('')
+    parser = Parser(stream, gram)
+    debugs = []
+    def debug_out(s):
+        debugs.append(s)
+    parser.debug_out = debug_out
+    for p in parser.parse_all():
+        yield str(p)
+    yield ''.join(debugs)
+    yield "done"
+
 def comp_terminal_test():
     aob = Symbol('a|b')
     a,b = StringTerminal('a'), StringTerminal('b')
@@ -24,7 +75,12 @@ def comp_terminal_test():
     yield g
     stream = StringStream('abaabba')
     parser = Parser(stream, g)
+    debugs = []
+    def debug_out(s):
+        debugs.append(s)
+    parser.debug_out = debug_out
     yield parser.parse_full()
+    yield ''.join(debugs)
     yield parser
 
 def grammar_tests():
@@ -627,6 +683,9 @@ if __name__=='__main__':
         transform_tests,
         grammar_tests,
         comp_terminal_test,
+        accept_empty_test,
+        not_even_partial_test,
+        pfilter_and_find_test,
     ]
     for test in tests:
         print test.__name__

@@ -3,6 +3,7 @@
 from grammar import *
 from streams import ParsingStream
 from itertools import ifilter
+import traceback
 
 def build_tree(parent, offset, grammar, dec_list):
     rule = grammar.rules[dec_list[offset]]
@@ -30,12 +31,12 @@ class Parser:
         self.stream = stream
         self.grammar = grammar
         self.parsed_terminals = 0
-        self.verbose = False
+        self.debug_out = None
     def __advance__(self):
-        if self.verbose:
-            print '>',self
-            print self.get_generation_lists()[1]
-            print self.stream.get_buffer()
+        if self.debug_out is not None:
+            self.debug_out('> '+str(self)+'\n')
+            self.debug_out(str(self.get_generation_lists()[1])+'\n')
+            self.debug_out(str(self.stream.get_buffer())+'\n')
         if not self.todo_stack:
             return False
         symbol, args = self.todo_stack.pop()
@@ -54,23 +55,21 @@ class Parser:
             if consume is False:
                 return False
             consume = iter(consume)
+            n,i = 0,None
+        else:
+            n,i,consume = args
+        try:
+            self.stream.backtrack(n)
             n,i = consume.next()
             self.stream.advance(n)
             self.parsed_stack.append((terminal, (n,i,consume)))
-            self.parsed_terminals+=1
+            if args is None:
+                self.parsed_terminals+=1
             return True
-        else:
-            try:
-                n,i,consume = args
-                self.stream.backtrack(n)
-                n,i = consume.next()
-                self.stream.advance(n)
-                self.parsed_stack.append((terminal, (n,i,consume)))
-                return True
-            except StopIteration:
-                self.parsed_terminals-=1
-                self.todo_stack.append((terminal, (n,i,consume)))
-                return self.__backtrack__()
+        except StopIteration:
+            self.parsed_terminals-=1
+            self.todo_stack.append((terminal, (n,i,consume)))
+            return self.__backtrack__()
     def __advance_nonterminal__(self, head, rule_index):
         if rule_index is None:
             rule_index = -1
@@ -84,10 +83,10 @@ class Parser:
             self.todo_stack.append((symbol, None))
         return True
     def __backtrack__(self):
-        if self.verbose:
-            print '<',self
-            print self.get_generation_lists()[1]
-            print self.stream.get_buffer()
+        if self.debug_out is not None:
+            self.debug_out('< '+str(self)+'\n')
+            self.debug_out(str(self.get_generation_lists()[1])+'\n')
+            self.debug_out(str(self.stream.get_buffer())+'\n')
         if not self.parsed_stack:
             return False
         symbol, args = self.parsed_stack.pop()
@@ -116,8 +115,7 @@ class Parser:
                 if not self.__iterate__():
                     return
             yield self
-            if not self.__iterate__():
-                return
+            assert(self.__iterate__())
     def parse_filtered(self, is_match):
         """Returns true if a parse state that fits is_match is reached.
         is_match should be a function or lambda that this parser
@@ -180,6 +178,8 @@ class Parser:
                 node.expand()
             off+=1
         return ret
+    def __repr__(self):
+        return 'Parser(?)'
 
 class ParseNode:
     def __init__(self, symbol):

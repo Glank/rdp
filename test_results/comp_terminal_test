@@ -2,5 +2,65 @@
 0)	a|b -> 'a'
 1)	a|b -> 'b'
 ********************
-0)	S -> a|b S
+0)	S -> 'a|b' S
 1)	S -> ε
+True
+> [(S,-)] [] 0
+[]
+abaabba
+> [(S,-),('a|b',-)] [(S,0)] 0
+[]
+abaabba
+> [(S,-)] [(S,0),('a|b',1)] 1
+[Parser(?)]
+baabba
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0)] 1
+[Parser(?)]
+baabba
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1)] 2
+[Parser(?), Parser(?)]
+aabba
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 2
+[Parser(?), Parser(?)]
+aabba
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 3
+[Parser(?), Parser(?), Parser(?)]
+abba
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 3
+[Parser(?), Parser(?), Parser(?)]
+abba
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 4
+[Parser(?), Parser(?), Parser(?), Parser(?)]
+bba
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 4
+[Parser(?), Parser(?), Parser(?), Parser(?)]
+bba
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 5
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+ba
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 5
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+ba
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 6
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+a
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 6
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+a
+> [(S,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 7
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+
+> [(S,-),('a|b',-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 7
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+
+< [(S,-),('a|b',0)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0)] 7
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+
+> [(S,0)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1)] 7
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+
+> [(ε,-)] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,1)] 7
+[Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?), Parser(?)]
+
+
+[] [(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,0),('a|b',1),(S,1),(ε,0)] 7

@@ -1,0 +1,54 @@
+True
+S
+  A
+    'a':a
+    'a':a
+  'b':b
+  S
+    A
+      'a':a
+      'a':a
+      'a':a
+    'b':b
+    S
+      A
+        'a':a
+      'b':b
+      S
+        ε
+A
+  'a':a
+  'a':a
+'a':a
+'a':a
+S
+  A
+    'a':a
+    'a':a
+    'a':a
+  'b':b
+  S
+    A
+      'a':a
+    'b':b
+    S
+      ε
+A
+  'a':a
+  'a':a
+  'a':a
+'a':a
+'a':a
+'a':a
+S
+  A
+    'a':a
+  'b':b
+  S
+    ε
+A
+  'a':a
+'a':a
+S
+  ε
+ε
