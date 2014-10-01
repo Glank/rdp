@@ -1,0 +1,7 @@
+/^test\n.*\ntest$/mis
+test
+False
+[(4, 'Test')]
+False
+[(4, 'Test')]
+Test

@@ -1,5 +1,79 @@
 from rdp import *
 import os.path
+import re
+import copy
+
+def repeat_terminal_test():
+    a = StringTerminal('a')
+    for minimum in [0,1,2]:
+        for maximum in [None,1,10]:
+            if not maximum or minimum<=maximum:
+                for gready in [True,False]:
+                    t = RepeatTerminal(
+                        a,
+                        minimum=minimum,
+                        maximum=maximum,
+                        gready=gready
+                    )
+                    yield str(t)
+
+def terminal_test():
+    t = RegexTerminal('^test\n.*\ntest$', flags=re.MULTILINE|re.IGNORECASE|re.DOTALL)
+    yield str(t)
+    t = KeywordTerminal('test')
+    yield str(t)
+    stream = StringStream('testing Test bla')
+    yield t.try_consume(stream)
+    stream.advance(8)
+    yield t.try_consume(stream)
+    stream.advance(4)
+    yield t.try_consume(stream)
+    stream.reset()
+    t = KeywordTerminal('Test', case_sensitive=True)
+    stream.advance(8)
+    yield t.try_consume(stream)
+    t = copy.deepcopy(t)
+    yield str(t)
+
+def word_stream_test():
+    stream = WordStream('this is a test'.split())
+    yield stream.has('this')
+    yield stream.has('is')
+    stream.advance(1)
+    yield stream.has('is')
+    stream.advance(3)
+    yield stream.has('this')
+    stream.reset()
+    yield stream.has('this')
+    stream.advance(2)
+    stream2 = stream.substream()
+    yield str(stream2)
+    yield stream2.has('a')
+    yield stream2.has('test')
+    stream2.advance(1)
+    yield stream2.has('test')
+
+def string_stream_test():
+    stream = StringStream("This is a test.")
+    yield str(stream.substream())
+    stream.advance(10)
+    yield str(stream.substream())
+    stream.reset()
+    yield str(stream.substream())
+
+def abstract_stream_test():
+    s = ParsingStream()
+    def test(f):
+        try:
+            f()
+            return 'bad'
+        except NotImplementedError:
+            return 'good'
+    yield test(lambda: s.reset())
+    yield test(lambda: s.advance(1))
+    yield test(lambda: s.backtrack(1))
+    yield test(lambda: s.substream())
+    yield 'done';
 
 def pfilter_and_find_test():
     S = Symbol('S')
@@ -686,6 +760,11 @@ if __name__=='__main__':
         accept_empty_test,
         not_even_partial_test,
         pfilter_and_find_test,
+        abstract_stream_test,
+        string_stream_test,
+        word_stream_test,
+        terminal_test,
+        repeat_terminal_test,
     ]
     for test in tests:
         print test.__name__

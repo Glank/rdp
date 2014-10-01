@@ -51,7 +51,7 @@ class WordStream(ParsingStream):
         self.index = 0
         self.off = off
     def has(self, word):
-        if (self.index+self.off+1)>len(self.words):
+        if (self.index+self.off)>=len(self.words):
             return False
         return self.words[self.off+self.index]==word
     def advance(self, amount):
@@ -66,6 +66,6 @@ class WordStream(ParsingStream):
     def reset(self):
         self.index = 0
     def substream(self):
-        return StringStream(self.words, off=self.index)
+        return WordStream(self.words, off=self.index)
     def __str__(self):
         return str(self.words[self.off:])

@@ -18,7 +18,7 @@ class RegexTerminal(TerminalSymbol):
         self.flags = flags
         self.regex = re.compile(regex, flags=flags)
         if name is None:
-            name = "/"+regex+"/"
+            name = "/%s/"%(regex.replace('\n','\\n'))
             if self.flags&re.M:
                 name+='m'
             if self.flags&re.I:
@@ -67,7 +67,7 @@ class KeywordTerminal(RegexTerminal):
     def __deepcopy__(self, memo):
         return KeywordTerminal(
             deepcopy(self.name,memo),
-            deepcopy(self.case_sensitive,memo)
+            case_sensitive=deepcopy(self.case_sensitive,memo)
         )
 
 class WordTerminal(TerminalSymbol):
@@ -112,6 +112,8 @@ class RepeatTerminal(ComplexTerminalSymbol):
                 code = '{%d,}'%self.minimum
         elif self.maximum==1 and self.minimum==0:
             code = '?'
+        elif self.minimum==self.maximum:
+            code = '{%d}'%self.minimum
         else:
             code = '{%d,%d}'%(self.minimum,self.maximum)
         if not self.gready:
