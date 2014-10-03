@@ -54,6 +54,14 @@ class WordStream(ParsingStream):
         if (self.index+self.off)>=len(self.words):
             return False
         return self.words[self.off+self.index]==word
+    def peek(self,ahead=0):
+        if (self.index+self.off+ahead)>=len(self.words):
+            return None
+        return self.words[self.off+self.index+ahead]
+    def peek_many(self, n):
+        if (self.index+self.off+n)>len(self.words):
+            return None
+        return self.words[self.off+self.index:self.off+self.index+n]
     def advance(self, amount):
         self.index+=amount
         assert(self.index+self.off<=len(self.words))

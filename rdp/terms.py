@@ -2,6 +2,50 @@ from grammar import *
 from streams import *
 from parser import *
 import re
+from nltk.corpus import wordnet as wn
+from nltk.corpus.reader.wordnet import Synset
+
+#SHTL = Synset Hyponym Tree Lemmas
+class SHTLTerminal(TerminalSymbol):
+    def __init__(self, word, pos=None):
+        morphy = wn.morphy(word)
+        synsets = wn.synsets(morphy, pos=pos)
+        hypo = lambda x: x.hyponyms()
+        def iter_flatten(tree):
+            if isinstance(tree, list):
+                for branch in tree:
+                    for item in iter_flatten(branch):
+                        yield item
+            else:
+                yield tree
+        def lemma_hypo_tree(synset):
+            for t in synset.tree(hypo):
+                for s in iter_flatten(t):
+                    for l in s.lemmas():
+                        yield l.name().lower()
+        self.lemmas = set()
+        self.max_words = 1
+        for synset in synsets:
+            for l in lemma_hypo_tree(synset):
+                if l not in self.lemmas:
+                    self.lemmas.add(l)
+                    words = l.count('_')+1
+                    if words > self.max_words:
+                        self.max_words=words
+        TerminalSymbol.__init__(self, word)
+    def try_consume(self, stream):
+        assert(isinstance(stream, WordStream))
+        for n in xrange(1,self.max_words+1):
+            words = stream.peek_many(n)
+            if words is None:
+                return False
+            w = '_'.join(w.lower() for w in words)
+            if w in self.lemmas:
+                return [(n,w)]
+            morphy = wn.morphy(w)
+            if morphy in self.lemmas:
+                return [(n,w)]
+        return False
 
 class StringTerminal(TerminalSymbol):
     def try_consume(self, stream):
