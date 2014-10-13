@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="11.5.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.UseCase</type>
+    <coordinates>
+      <x>260</x>
+      <y>230</y>
+      <w>40</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>S</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
