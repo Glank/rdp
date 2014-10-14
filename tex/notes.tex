@@ -13,17 +13,18 @@
 
 \section{Recursive Descent Parsing}
 \label{rdp}
-Historically, recursive descent parsers have been coded manually or else compiled from 
-a context free grammar specification. \cite{compiler} 
-Coding a RDP manually is tedious and error prone.
-Compiling a context free grammar into a recursive descent parser
-may not preserve the {\em strong equivalence} of the grammar
-since some grammars need to be manipulated before
-they can be parsed by a RDP. This makes any manipulation of the
-resulting parse trees much more difficult. 
+Historically, recursive descent parsers have been coded manually or else generated from 
+a context free grammar specification. \cite{compiler, lewis, formal_langs} 
+Coding a RDP manually is tedious, error prone, and difficult to maintain.
+Programatically generating a RDP from a grammar
+still isn't ideal - converting a context free grammar into
+a recursive decent parsable form may not preserve the {\em strong equivalence} of the grammar.
+And as a result, parse trees generated from that RDP will not be in the same form
+as they might appear in the initial (non-RD parsable) grammar, which is often a more 
+natural representation of the desired language \cite{compiler}
 
-In this paper, I will describe a novel approach to recursive descent parseing
-which solves both problems by first compiling a grammar into a recursive descent
+In this paper, I hope to describe a useful variation on recursive descent parseing
+which solves these problems. My system compiles a grammar into a recursive descent
 parseable grammar, then decompiling the parse trees generated from the RDP back into
 the initial grammar.
 
