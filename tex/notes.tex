@@ -26,7 +26,7 @@ which addresses these problems. My system compiles a context free grammar
 specification into a RD-parseable grammar.
 A parser is generated from the RD-parseable gramar,
 and used to parse a input streams. 
-The resulting parse trees are then transformed back into a equivalent
+The resulting parse trees are then transformed back into equivalent
 parse trees under the original grammar. (Figure \ref{fig:high_level})
 
 \begin{figure}[h!]
@@ -140,7 +140,7 @@ The depth of each node in the PT tree corresponds with the number of production 
 \clearpage
 
 \section{Effect of Grammar Transformations on Parse Trees}
-Direct left recursion is a problem for recursive descent parsers because it causes them to
+Left recursion is a problem for recursive descent parsers because it causes them to
 go into an infinite loop. Using the model described in section \ref{rd_wo_sd}:
 when a PT node is reach where the first non-terminal symbol has a production rule with
 left recursion, it's child node will have the same non-terminal symbol so it will produce
@@ -158,7 +158,7 @@ These sections will describe how these transformations work on the grammar
 and on their parse trees.
 
 \subsection{Direct Left Recursion Elimination}
-A left recursive grammar, $G$, has rules of the form
+A left recursive grammar, $G$, has rules for some non-terminal $A$ of the form
 $A \rightarrow A \alpha_i$ and $A \rightarrow \beta_j$, $i \in [1,m]$, $j \in [1,n]$.
 Let $R_\alpha$ and $R_\beta$ represent the sets of those rules respectively where the notation
 $R_\alpha(1)$ represents $A \rightarrow A \alpha_1$. 
@@ -167,13 +167,14 @@ $\beta_y \alpha_{x_1} \alpha_{x_2} ... \alpha_{x_p}...\alpha_{x_{k-1}} \alpha_{x
 However, to produce such a string, the alpha rules need to be followed in reverse order:
 \[R_\alpha(x_k), R_\alpha(x_{k-1}), ... R_\alpha(x_{p}), ... R_\alpha(x_2), R_\alpha(x_1), R_\beta(y)\]
 
-The transformation $DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ changes
+The transformation \cite{aho} $DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ changes
 each rule in $R_\alpha$ to the form $A' \rightarrow \alpha_i A'$, each rule
 in $R_\beta$ to the form $A \rightarrow \beta_j A'$, and adds an additional rule
 $R_\epsilon = A' \rightarrow \epsilon$. Consequently, the order of the followed production
 rules in $G'$ results in alpha rules being followed in forward order:
 
 \[R_\beta(y), R_\alpha(x_1), R_\alpha(x_2), ... R_\alpha(x_p), ... R_\alpha(x_{k-1}),R_\alpha(x_k), R_\epsilon \]
+
 
 \begin{figure}[h!]
     \centering
@@ -187,7 +188,24 @@ The transformation effects the parse trees by flipping and reversing $A$ chains,
 replacing lower $A$ nodes with $A'$ nodes, moving the $\beta$ up,
 and adding an $A'$ node and $\epsilon$ node to the end of the chain. (Figure \ref{fig:dlre}) The inverse transformation
 removes last $A'$ and $\epsilon$ nodes, moves the $\beta$ back down to the end of the chain, and changes the $A'$ nodes back into
-$A$ nodes, then flips and reverses the $A$ chain.
+$A$ nodes, then flips and reverses the $A$ chain. Note that the $\alpha$ and $\beta$ nodes are arbitrary strings, so in reality
+they might be multiple nodes which might have any number of children.
+
+More formally, for each $A$ node in the RD-parsable grammar, the inverse transformation $DLRE^{-1}(T'; A, A') \rightarrow T$
+modifies chains of $A/A'$ nodes where the children of the $A$ node are $C_A$, of all but the last $A'_{x_p}$ node are $C_{A'_{x p}}$,
+and the last $A'_\epsilon$ node has only the child $\epsilon$.
+From the $DLRE$ transformation rules we know that the $C_A$ will be of the form $\beta_y A'_{x_1}$. 
+We can also conclude from the $DLRE$ tranformation that each $C_{A'_{x p}}$ will be of the form $\alpha_p A'_{x_{p+1}}$
+when $p < k$ and $A'_\epsilon$ when $p=k$. 
+
+The inverse transformation first removes the $A'_\epsilon$ node. Then it changes each remaining $A'_{x_p}$ node into an $A_{x_p}$ node
+with the same children. Next the $A_{x_p}$ are restructured such that each $C_{A_{x p}}$
+is equal to $A_{x_{p-1}} \alpha_p$ where $1 < p$ and $\beta_y \alpha_k$ where $p=1$. The top node of the chain, 
+$A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
+
+\subsection{Substitution}
+
+TODO
 
 \clearpage
 
