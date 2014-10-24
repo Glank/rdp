@@ -3,6 +3,34 @@ import os.path
 import re
 import copy
 
+def shtl_terminal_test():
+    S = Symbol('S')
+    the = WordTerminal('the')
+    dog = SHTLTerminal('dog', pos='n')
+    barked = SHTLTerminal('barked', pos='v')
+    rules = [
+        Rule(S, [the, dog, barked])
+    ]
+    gram = Grammar(rules)
+    gram.compile()
+
+    yield "Input: The dog barked."
+    sentences = [
+        "the great dane barked",
+        "the cat meowed",
+        "the terrier yiped",
+        "the puppy yiped",
+        "the wolf howled",
+        "the some-really-long-name-for-a-dog barked",
+        "the",
+    ]
+    for sentence in sentences:
+        yield sentence
+        words = list(re.findall('\w+',sentence))
+        stream = WordStream(words)
+        parser = Parser(stream, gram)
+        yield parser.parse_full()
+
 def repeat_terminal_test():
     a = StringTerminal('a')
     for minimum in [0,1,2]:
@@ -765,6 +793,7 @@ if __name__=='__main__':
         word_stream_test,
         terminal_test,
         repeat_terminal_test,
+        shtl_terminal_test,
     ]
     for test in tests:
         print test.__name__

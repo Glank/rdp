@@ -5,6 +5,22 @@ import re
 from nltk.corpus import wordnet as wn
 from nltk.corpus.reader.wordnet import Synset
 
+class InclusionSetTerminal(TerminalSymbol):
+    def __init__(self, name, inc_set, max_words=1):
+        self.inc_set = inc_set
+        self.max_words = max_words
+        TerminalSymbol.__init__(self, name)
+    def try_consume(self, stream):
+        assert(isinstance(stream, WordStream))
+        for n in xrange(1,self.max_words+1):
+            words = stream.peek_many(n)
+            if words is None:
+                return False
+            w = ''.join(w.lower() for w in words)
+            if w in self.inc_set:
+                return [(n,words)]
+        return False
+
 #SHTL = Synset Hyponym Tree Lemmas
 class SHTLTerminal(TerminalSymbol):
     def __init__(self, word, pos=None):

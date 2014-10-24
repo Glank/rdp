@@ -1,3 +1,3 @@
 coverage erase
-coverage run tests.py
+coverage run --include=rdp/* tests.py
 coverage report -m

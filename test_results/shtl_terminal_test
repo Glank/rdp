@@ -1,0 +1,15 @@
+Input: The dog barked.
+the great dane barked
+True
+the cat meowed
+False
+the terrier yiped
+True
+the puppy yiped
+True
+the wolf howled
+False
+the some-really-long-name-for-a-dog barked
+False
+the
+False
