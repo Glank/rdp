@@ -35,8 +35,15 @@ def jaccard_ngram_dist(a,b,n):
     return 1.0-(num/denom)
 
 def jaccard_ngram_cluster(input_data, n):
+    dist_memo = {}
+    def dist_alg(a,b):
+        tup = (a,b) if a<b else (b,a)
+        if tup not in dist_memo:
+            dist = jaccard_ngram_dist(a,b,n)
+            dist_memo[tup] = dist
+        return dist_memo[tup]
     cl = cluster.HierarchicalClustering(
-        input_data, lambda a,b:jaccard_ngram_dist(a,b,n)
+        input_data, dist_alg
     )
     cl.cluster()
     cl.distance = None
@@ -145,7 +152,11 @@ class NGClusterFilter:
         for cluster in clusters:
             sf = NGPOLFilter(n, cluster)
             self.sub_filters.append(sf)
+        self.clusters = clusters
     def add(self, sample):
+        best_filter = self.get_best_subfilter(sample)
+        best_filter.add(sample)
+    def get_best_subfilter(self, sample):
         best_filter = None
         best_rateing = 0
         for sf in self.sub_filters:
@@ -153,7 +164,11 @@ class NGClusterFilter:
             if rate>best_rateing:
                 best_rateing = rate
                 best_filter = sf
-        best_filter.add(sample)
+        return best_filter
+    def stretch_for(self, sample, delta=.1):
+        best_filter = self.get_best_subfilter(sample)
+        while sample not in best_filter:
+            best_filter.add_allowance(k=delta)
     def update_bounds(self):
         for sf in self.sub_filters:
             sf.update_bounds()
@@ -166,23 +181,28 @@ class NGClusterFilter:
                 return True
         return False
     def print_stats(self):
+        if self.clusters:
+            print "Clusters:",[c[0] for c in self.clusters]
         mins = []
         devs = []
         for sf in self.sub_filters:
             mins.append(sf.min_rating)
             devs.append(sf.deviation)
-        print "Minimum Ratings: ",mins
-        print "Standard Deviations: ",devs
+        print "Minimum Ratings:",mins
+        print "Standard Deviations:",devs
     def clean(self):
+        self.clusters = None
         for sf in self.sub_filters:
             sf.clean()
     def tofile(self, f):
+        pickle.dump(self.clusters, f)
         pickle.dump(len(self.sub_filters), f)
         for sf in self.sub_filters:
             sf.tofile(f)
     @staticmethod
     def fromfile(f):
         filt = NGClusterFilter(None,None)
+        filt.clusters = pickle.load(f)
         subs = pickle.load(f)
         filt.sub_filters = []
         for i in xrange(subs):
@@ -201,13 +221,14 @@ def test():
                 name = m.group(1).strip().lower()
                 names.append(name)
     random.shuffle(names)
+    names = list(set(names))
     cl = jaccard_ngram_cluster(names, 3)
     with open('clusters/uni_names', 'w') as f:
         pickle.dump(cl, f)
 
 def test2():
     import random
-    with open('clusters/uni_names_200', 'r') as f:
+    with open('clusters/uni_names', 'r') as f:
         cl = pickle.load(f)
     while True:
         print "Level: ",
@@ -243,5 +264,5 @@ def test3():
         print test in filt
 
 if __name__=="__main__":
-    test3()
+    test2()
 

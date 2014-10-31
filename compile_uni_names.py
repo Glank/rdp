@@ -28,22 +28,17 @@ def compile():
     print len(uni_names)
 
 def compile_clusters():
-    with open('clusters/uni_names_200', 'r') as f:
+    with open('clusters/uni_names', 'r') as f:
         cl = pickle.load(f)
-    clusters = cl.getlevel(.33)
-    names = []
-    with open('sample_data/uni_names.out', 'r') as f:
-        for line in f:
-            m = re.search(r'\| "(.*)"$', line.strip())
-            if m:
-                name = m.group(1).strip().lower()
-                names.append(name)
+    clusters = cl.getlevel(.5)
     filt = NGClusterFilter(3, clusters)   
-    for name in names:
-        if name not in filt:
-            filt.add(name)
     filt.update_bounds()
-    filt.add_allowance(.33)
+    filt.add_allowance(.2)
+    filt.print_stats()
+    filt.stretch_for("professor")
+    filt.stretch_for("professor 10")
+    filt.stretch_for("student")
+    filt.stretch_for("student 12")
     filt.print_stats()
     filt.clean()
     with open('ngpols/uni_names_cluster','w') as f:

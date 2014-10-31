@@ -15,7 +15,9 @@ gram.compile()
 
 print "Input: The dog barked."
 while True:
-    sentence = raw_input().lower()
+    sentence = raw_input().strip().lower()
+    if sentence in ["quit", "q", "exit"]:
+        exit()
     words = list(re.findall('\w+',sentence))
     stream = WordStream(words)
     parser = Parser(stream, gram)
