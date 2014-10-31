@@ -12,14 +12,15 @@ class InclusionSetTerminal(TerminalSymbol):
         TerminalSymbol.__init__(self, name)
     def try_consume(self, stream):
         assert(isinstance(stream, WordStream))
+        rets = []
         for n in xrange(1,self.max_words+1):
             words = stream.peek_many(n)
             if words is None:
-                return False
+                break
             w = ''.join(w.lower() for w in words)
             if w in self.inc_set:
-                return [(n,words)]
-        return False
+                rets.append((n,words))
+        return rets or False
 
 #SHTL = Synset Hyponym Tree Lemmas
 class SHTLTerminal(TerminalSymbol):
@@ -51,17 +52,19 @@ class SHTLTerminal(TerminalSymbol):
         TerminalSymbol.__init__(self, word)
     def try_consume(self, stream):
         assert(isinstance(stream, WordStream))
+        rets = []
         for n in xrange(1,self.max_words+1):
             words = stream.peek_many(n)
             if words is None:
-                return False
+                break
             w = '_'.join(w.lower() for w in words)
             if w in self.lemmas:
-                return [(n,w)]
-            morphy = wn.morphy(w)
-            if morphy in self.lemmas:
-                return [(n,w)]
-        return False
+                rets.append((n,w))
+            else:
+                morphy = wn.morphy(w)
+                if morphy in self.lemmas:
+                    rets.append((n,w))
+        return rets or False
 
 class StringTerminal(TerminalSymbol):
     def try_consume(self, stream):

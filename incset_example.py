@@ -1,12 +1,12 @@
 #!/usr/bin/env python 
 from rdp import *
-from pybloom import BloomFilter
+from ngrams import NGClusterFilter
 
 #the incusion set comes from the names of people
 #in an rdf document which are pre-compiled into
 #a bloom filter.
-with open('blooms/uni_names', 'r') as f:
-    uni_names = BloomFilter.fromfile(f)
+with open('ngpols/uni_names_cluster', 'r') as f:
+    uni_names = NGClusterFilter.fromfile(f)
 
 S = Symbol('S')
 is_ = WordTerminal('is')
