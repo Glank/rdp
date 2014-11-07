@@ -21,6 +21,8 @@ class ParsingStream:
         """Returns true if and only if the stream is completely
         consumed."""
         raise NotImplementedError()
+    def get_buffer(self):
+        raise NotImplementedError()
 
 class StringStream(ParsingStream):
     def __init__(self, string, off=0):
@@ -81,3 +83,5 @@ class WordStream(ParsingStream):
         return WordStream(self.words, off=self.index)
     def __str__(self):
         return str(self.words[self.off:])
+    def get_buffer(self):
+        return self.words[self.index+self.off:]
