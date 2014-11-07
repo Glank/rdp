@@ -89,14 +89,16 @@ class NGramPOL:
             node = node[token]
         return node
     def tofile(self, f):
-        pickle.dump((self.tokens, self.n, self.size), f)
+        tpl = (self.tokens, self.n, self.size)
+        pickle.dump(tpl, f)
         tree = json.dumps(self.root,f)
         tree = zlib.compress(tree)
         pickle.dump(tree, f)
     @staticmethod
     def fromfile(f):
         ngpol = NGramPOL(2)
-        ngpol.tokens, ngpol.n, ngpol.size = pickle.load(f)
+        tpl = pickle.load(f)
+        ngpol.tokens, ngpol.n, ngpol.size = tpl
         tree = pickle.load(f)
         tree = zlib.decompress(tree)
         ngpol.root = json.loads(tree)
@@ -110,7 +112,7 @@ class NGPOLFilter:
         for item in training_set:
             self.ngpol.add(item)
         self.training_set = training_set
-        self.false_neg_rate = 0.0
+        self.false_neg_rate = false_neg_rate
         self.update_bounds()
     def update_bounds(self):
         ratings = [self.ngpol.rate(item) for item in self.training_set]
@@ -145,17 +147,24 @@ class NGPOLFilter:
         return filt
 
 class NGClusterFilter:
-    def __init__(self, n, clusters):
+    def __init__(self, n, clusters, false_neg_rate=0.0):
         if n==None:
             return
         self.sub_filters = []
         for cluster in clusters:
-            sf = NGPOLFilter(n, cluster)
+            sf = NGPOLFilter(n, cluster, false_neg_rate=false_neg_rate)
             self.sub_filters.append(sf)
         self.clusters = clusters
     def add(self, sample):
         best_filter = self.get_best_subfilter(sample)
         best_filter.add(sample)
+    def rate(self, sample):
+        best_rating = 0
+        for sf in self.sub_filters:
+            rate = sf.ngpol.rate(sample)
+            if rate>best_rating:
+                best_rating = rate
+        return best_rating
     def get_best_subfilter(self, sample):
         best_filter = None
         best_rateing = 0
@@ -197,6 +206,7 @@ class NGClusterFilter:
     def tofile(self, f):
         pickle.dump(self.clusters, f)
         pickle.dump(len(self.sub_filters), f)
+        print len(self.sub_filters)
         for sf in self.sub_filters:
             sf.tofile(f)
     @staticmethod
@@ -204,6 +214,7 @@ class NGClusterFilter:
         filt = NGClusterFilter(None,None)
         filt.clusters = pickle.load(f)
         subs = pickle.load(f)
+        print subs
         filt.sub_filters = []
         for i in xrange(subs):
             filt.sub_filters.append(NGPOLFilter.fromfile(f))
@@ -213,22 +224,23 @@ def test():
     import re
     import random
     import traceback
+    import json
     names = []
-    with open('sample_data/uni_names.out', 'r') as f:
-        for line in f:
-            m = re.search(r'\| "(.*)"$', line.strip())
-            if m:
-                name = m.group(1).strip().lower()
-                names.append(name)
+    with open('sample_data/actor_names.json', 'r') as f:
+        j = json.load(f)
+        for b in j['results']['bindings']:
+            name = b['name']['value'].upper()
+            name = ''.join(re.findall('[A-Z0-9]+',name))
+            names.append(name)
     random.shuffle(names)
-    names = list(set(names))
+    names = list(set(names))[:300]
     cl = jaccard_ngram_cluster(names, 3)
-    with open('clusters/uni_names', 'w') as f:
+    with open('clusters/actor_names', 'w') as f:
         pickle.dump(cl, f)
 
 def test2():
     import random
-    with open('clusters/uni_names', 'r') as f:
+    with open('clusters/actor_names', 'r') as f:
         cl = pickle.load(f)
     while True:
         print "Level: ",
@@ -239,30 +251,32 @@ def test2():
             print random.sample(c,min(len(c),4))
 
 def test3():
-    with open('clusters/uni_names_200', 'r') as f:
+    with open('clusters/actor_names', 'r') as f:
         cl = pickle.load(f)
-    clusters = cl.getlevel(.33)
+    clusters = cl.getlevel(1)
     import re
     import random
     import traceback
+    import json
     names = []
-    with open('sample_data/uni_names.out', 'r') as f:
-        for line in f:
-            m = re.search(r'\| "(.*)"$', line.strip())
-            if m:
-                name = m.group(1).strip().lower()
-                names.append(name)
-    filt = NGClusterFilter(3, clusters)   
+    with open('sample_data/actor_names.json', 'r') as f:
+        j = json.load(f)
+        for b in j['results']['bindings']:
+            name = b['name']['value'].upper()
+            name = ''.join(re.findall('[A-Z0-9]+',name))
+            names.append(name)
+    filt = NGClusterFilter(3, clusters, false_neg_rate=.4)
     for name in names:
-        if name not in filt:
+        if name not in cl._input:
             filt.add(name)
     filt.update_bounds()
-    filt.add_allowance(.3)
     filt.print_stats()
     while True:
-        test = raw_input()
+        test = ''.join(re.findall('[A-Z0-9]+',raw_input().upper()))
         print test in filt
+        print filt.rate(test)
 
 if __name__=="__main__":
-    test2()
-
+    import sys
+    sys.setrecursionlimit(1500)
+    test3()
