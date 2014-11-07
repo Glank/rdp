@@ -172,21 +172,26 @@ class RedoLeftRecursion(DecListTransform):
             depth = 0 #recursive depth
             for i in dec_list:
                 if i in self.alpha_indexes:
+                    #start recursive sequence
                     if depth == 0:
                         rec_stack = [i]
                         int_stack = [[]]
                         depth = 1
+                    #deepen recursive sequence
                     else:
                         int_stack[-1].append(i)
                         depth+= 1
                 elif rec_stack is None:
                     yield i
                 else:
+                    #go up the recursion stack
                     if i==self.added_index:
                         if depth == 1:
+                            #print rec_stack, int_stack
                             while rec_stack:
                                 yield rec_stack.pop()
-                                for j in t(int_stack.pop()):
+                            while int_stack:
+                                for j in t(int_stack.pop(0)):
                                     yield j
                             rec_stack = None
                             int_stack = None
@@ -440,7 +445,10 @@ class Grammar:
         if include_intermediates:
             int_decs = [dec_list[:]]
         for tpt in reversed(self.to_parent_transforms):
+            #print tpt
+            #print self.intermediates[i]
             dec_list = tpt.transform(dec_list)
+            #print dec_list
             if include_intermediates:
                 int_decs.append(dec_list[:])
             if self.intermediates is not None:

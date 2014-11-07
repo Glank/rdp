@@ -17,6 +17,10 @@ class ParsingStream:
         """Returns a stream that appears to be this stream
         with all elements before the current index cut off."""
         raise NotImplementedError()
+    def finished(self):
+        """Returns true if and only if the stream is completely
+        consumed."""
+        raise NotImplementedError()
 
 class StringStream(ParsingStream):
     def __init__(self, string, off=0):
