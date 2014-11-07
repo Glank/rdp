@@ -1,4 +1,7 @@
 #!/usr/bin/env python 
+#Test the parser with something a little... vague.
+#Prints both valid interpretations of BUFFALO*8
+#http://en.wikipedia.org/wiki/Buffalo_buffalo_Buffalo_buffalo_buffalo_buffalo_Buffalo_buffalo
 from rdp import *
 
 S = Symbol('S') #sentence/start symbol
@@ -23,11 +26,9 @@ rules = [
 ]
 gram = Grammar(rules, store_intermediates=True)
 gram.compile()
-print gram
-#exit()
 
 test = """
-    Buffalo buffalo buffalo Buffalo buffalo Buffalo buffalo buffalo
+    Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo
 """.strip().upper()
 
 print test
