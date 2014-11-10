@@ -59,7 +59,7 @@ class Parser:
         else:
             n,i,consume = args
         try:
-            self.stream.backtrack(n)
+            #self.stream.backtrack(n)
             n,i = consume.next()
             self.stream.advance(n)
             self.parsed_stack.append((terminal, (n,i,consume)))
@@ -90,7 +90,10 @@ class Parser:
         if not self.parsed_stack:
             return False
         symbol, args = self.parsed_stack.pop()
-        if not symbol.is_terminal():
+        if symbol.is_terminal():
+            n,i,consume = args
+            self.stream.backtrack(n)
+        else:
             rules = self.grammar.rules_by_head(symbol)
             rule = rules[args]
             assert(len(rule.tail)>0)

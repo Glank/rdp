@@ -11,7 +11,6 @@ with open('ngpols/actor_names', 'rb') as f:
     actor_ngpol = NGPOLFilter.fromfile(f)
 actor_fuzzy = BloomFSS(actor_bloom, 1)
 actor_filt = OrSet([actor_ngpol, actor_fuzzy])
-print "JOHN SMITH" in actor_filt
 
 #initialize movie name inclusion set
 with open('ngpols/film_titles', 'rb') as f:
@@ -22,10 +21,22 @@ S = Symbol('S')
 is_ = WordTerminal('IS')
 actor = InclusionSetTerminal('actor', actor_filt , max_words=3)
 in_ = WordTerminal('IN')
-film = InclusionSetTerminal('film', titles_filt, max_words=4)
+film = InclusionSetTerminal('film', titles_filt, max_words=7)
+are_ = WordTerminal('ARE')
+or_ = WordTerminal('OR')
+and_ = WordTerminal('AND')
+actor_and = Symbol('actor_and')
+actor_or = Symbol('actor_or')
 
 rules = [
     Rule(S, [is_, actor, in_, film]),
+    Rule(S, [is_, actor_or, in_, film]),
+    Rule(S, [are_, actor_and, in_, film]),
+    Rule(S, [are_, actor_or, in_, film]),
+    Rule(actor_and, [and_, actor]),
+    Rule(actor_and, [actor, actor_and]),
+    Rule(actor_or, [or_, actor]),
+    Rule(actor_or, [actor, actor_or]),
 ]
 gram = Grammar(rules)
 gram.compile()
@@ -39,10 +50,14 @@ while True:
     words = list(re.findall('\w+',sentence))
     stream = WordStream(words)
     parser = Parser(stream, gram)
-    def out(x):
-        print x
-    parser.debug_out = out
-    if parser.parse_full():
-        print parser.to_parse_tree()
+    valid = False
+    for interp in parser.parse_all():
+        if not stream.finished():
+            continue
+        print '*'*70
+        print interp.to_parse_tree()
+        valid = True
+    if valid:
+        print '*'*70
     else:
-        print "Not valid."
+        print "No valid interpretations found."

@@ -9,5 +9,6 @@ setup(
     author='Ernest Kirstein',
     author_email='glank314@gmail.com',
     url='https://github.com/Glank/rdp/',
-    packages=['rdp']
+    packages=['rdp'],
+    requires=['pybloom', 'nltk', 'numpy', 'cluster'],
 )

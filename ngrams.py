@@ -206,7 +206,6 @@ class NGClusterFilter:
     def tofile(self, f):
         pickle.dump(self.clusters, f)
         pickle.dump(len(self.sub_filters), f)
-        print len(self.sub_filters)
         for sf in self.sub_filters:
             sf.tofile(f)
     @staticmethod
@@ -214,7 +213,6 @@ class NGClusterFilter:
         filt = NGClusterFilter(None,None)
         filt.clusters = pickle.load(f)
         subs = pickle.load(f)
-        print subs
         filt.sub_filters = []
         for i in xrange(subs):
             filt.sub_filters.append(NGPOLFilter.fromfile(f))

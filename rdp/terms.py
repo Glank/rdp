@@ -17,7 +17,7 @@ class InclusionSetTerminal(TerminalSymbol):
             words = stream.peek_many(n)
             if words is None:
                 break
-            w = ''.join(w.lower() for w in words)
+            w = ''.join(w for w in words)
             if w in self.inc_set:
                 rets.append((n,words))
         return rets or False

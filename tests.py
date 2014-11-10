@@ -3,6 +3,38 @@ import os.path
 import re
 import copy
 
+def term_backtrack_bug_test():
+    #setup the grammar
+    S = Symbol('S')
+    is_ = WordTerminal('IS')
+    actor = InclusionSetTerminal(
+        'actor', set(['WILLSMITH']), max_words=3
+    )
+    in_ = WordTerminal('IN')
+    film = InclusionSetTerminal(
+        'film', set(['INDEPENDENCEDAY']), max_words=7
+    )
+    rules = [
+        Rule(S, [is_, actor, in_, film]),
+    ]
+    gram = Grammar(rules)
+    gram.compile()
+    sentence = "IS WILL SMITH IN INDEPENDENCE DAY"
+    words = list(re.findall('\w+',sentence))
+    stream = WordStream(words)
+    parser = Parser(stream, gram)
+    valid = False
+    for interp in parser.parse_all():
+        if not stream.finished():
+            continue
+        yield '*'*70
+        yield interp.to_parse_tree()
+        valid = True
+    if valid:
+        yield '*'*70
+    else:
+        yield "No valid interpretation was found."
+
 def shtl_terminal_test():
     S = Symbol('S')
     the = WordTerminal('the')
@@ -793,6 +825,7 @@ if __name__=='__main__':
         word_stream_test,
         terminal_test,
         repeat_terminal_test,
+        term_backtrack_bug_test,
         shtl_terminal_test,
     ]
     for test in tests:

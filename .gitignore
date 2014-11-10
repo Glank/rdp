@@ -7,3 +7,4 @@ tex/*.log
 tex/*.pdf
 *.swp
 .coverage
+build
