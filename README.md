@@ -128,7 +128,7 @@ Actor Identification
 ---
 The example script 'actor_ident.py' should run without needing to install any extra software.
 It figures out the RDF URI of an actor that corresponds to a given (possibly mangled) name.
-It uses a cached SPARQL query result file and some simple user feedback.
+It uses a cached SPARQL query result file and some simple user feedback; it runs in O(n) time.
 
     Identifying 'David Blane'...
     (u'David Blaine', u'http://data.linkedmdb.org/resource/actor/29856')
