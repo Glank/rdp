@@ -123,3 +123,36 @@ models which can then determine if arbitrary strings are possibly members
 of those sets. From there, the models are entered as terminal symbles in
 a grammar which is compiled and used by the parser. It does an 'ok' job
 at the moment - it still needs some tweeks.
+
+Actor Identification
+---
+The example script 'actor_ident.py' should run without needing to install any extra software.
+It figures out the RDF URI of an actor that corresponds to a given (possibly mangled) name.
+It uses a cached SPARQL query result file and some simple user feedback.
+
+    Identifying 'David Blane'...
+    (u'David Blaine', u'http://data.linkedmdb.org/resource/actor/29856')
+
+    Identifying 'Swartzeneger'...
+    By 'Swartzeneger' did you mean:
+    1)  Arnold Schwarzenegger
+    2)  RenÃ©e Zellweger
+    3)  John Ratzenberger
+    4)  Pete Seeger
+    5)  None of the above.
+    1
+    (u'Arnold Schwarzenegger', u'http://data.linkedmdb.org/resource/actor/29369')
+
+    Identifying 'Jacky Chan'...
+    (u'Jackie Chan', u'http://data.linkedmdb.org/resource/actor/30334')
+
+    Identifying 'Notaname'...
+    By 'Notaname' did you mean:
+    1)  Nona Gaye
+    2)  Noah Wyle
+    3)  Stan Lee
+    4)  Jim Rome
+    5)  Ted Demme
+    6)  None of the above.
+    6
+    None

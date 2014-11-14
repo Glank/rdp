@@ -5,6 +5,7 @@ import hashlib
 import numpy as np
 import cluster
 import zlib
+import matplotlib.pyplot as plot
 
 __PRE__ = hashlib.md5('__PRE__').hexdigest()
 __POST__ = hashlib.md5('__POST__').hexdigest()
@@ -251,7 +252,7 @@ def test2():
 def test3():
     with open('clusters/actor_names', 'r') as f:
         cl = pickle.load(f)
-    clusters = cl.getlevel(1)
+    clusters = cl.getlevel(.5)
     import re
     import random
     import traceback
@@ -263,13 +264,21 @@ def test3():
             name = b['name']['value'].upper()
             name = ''.join(re.findall('[A-Z0-9]+',name))
             names.append(name)
-    filt = NGClusterFilter(3, clusters, false_neg_rate=.4)
+    filt = NGClusterFilter(3, clusters)
     for name in names:
         if name not in cl._input:
             filt.add(name)
     filt.update_bounds()
-    filt.print_stats()
-    while True:
+    #create rating histogram
+    ratings = [filt.rate(n) for n in names]
+    plot.hist(ratings, bins=50)
+    plot.xlabel("NGram Rating")
+    plot.ylabel("Names")
+    plot.show()
+    filt.update_bounds()
+    #filt.print_stats()
+    test = ""
+    while test.lower() not in ['quit','exit','q']:
         test = ''.join(re.findall('[A-Z0-9]+',raw_input().upper()))
         print test in filt
         print filt.rate(test)

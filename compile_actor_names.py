@@ -3,6 +3,7 @@ import json
 from pybloom import BloomFilter
 from ngrams import *
 import re
+import matplotlib.pyplot as plot
 
 def compile():
     names = []
@@ -19,6 +20,13 @@ def compile():
     filt = NGPOLFilter(3, names, false_neg_rate=.4)
     filt.update_bounds()
     filt.clean()
+    #create rating histogram
+    ratings = [filt.ngpol.rate(n) for n in names]
+    plot.hist(ratings, bins=50)
+    plot.xlabel("NGram Rating")
+    plot.ylabel("Names")
+    plot.savefig("imgs/actor_names.png")
+    plot.show()
     with open('blooms/actor_names','wb') as f:
         bloom.tofile(f)
     with open('ngpols/actor_names','wb') as f:
@@ -45,4 +53,4 @@ def test():
 
 if __name__=='__main__':
     compile()
-    test()
+    #test()
