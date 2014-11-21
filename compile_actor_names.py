@@ -2,6 +2,7 @@
 import json
 from pybloom import BloomFilter
 from ngrams import *
+from distribute import *
 import re
 import matplotlib.pyplot as plot
 
@@ -17,7 +18,7 @@ def compile():
             bloom.add(name)
 
     names = list(set(names))
-    filt = NGPOLFilter(3, names, false_neg_rate=.4)
+    filt = NGPOLFilter(3, names, false_neg_rate=.01)
     filt.update_bounds()
     filt.clean()
     #create rating histogram
@@ -31,6 +32,15 @@ def compile():
         bloom.tofile(f)
     with open('ngpols/actor_names','wb') as f:
         filt.tofile(f)
+
+    #create prob sets
+    probset = NgramProbSet(3,names)
+    probset2 = LengthProbSet(names)
+    with open('probsets/actor_names', 'wb') as f:
+        probset.tofile(f)
+    with open('probsets/actor_names_len', 'wb') as f:
+        probset2.tofile(f)
+
     print "compiled."
 
 def test():
@@ -38,10 +48,14 @@ def test():
         bloom = BloomFilter.fromfile(f)
     with open('ngpols/actor_names', 'rb') as f:
         ngpol = NGPOLFilter.fromfile(f)
+    with open('probsets/actor_names', 'rb') as f:
+        probset = NgramProbSet.fromfile(f)
     print "Enter a title:"
     def testname(name, filt):
         if name in filt:
             print "Yup, that is an actor's name."
+            if isinstance(filt, ProbabilitySet):
+                print filt.getProbability(name)
         else:
             print "That wasn't an actor's name."
     while True:
@@ -50,7 +64,9 @@ def test():
         testname(name, bloom)
         print "NGOPL:"
         testname(name, ngpol)
+        print "NgramProbSet:"
+        testname(name, probset)
 
 if __name__=='__main__':
     compile()
-    #test()
+    test()

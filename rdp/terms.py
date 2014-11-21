@@ -4,6 +4,30 @@ from parser import *
 import re
 from nltk.corpus import wordnet as wn
 from nltk.corpus.reader.wordnet import Synset
+from prob import *
+
+class ProbabilitySetTerminal(TerminalSymbol):
+    def __init__(self, name, prob_set, max_words=1):
+        assert(isinstance(prob_set, ProbabilitySet))
+        self.prob_set = prob_set
+        self.max_words = max_words
+        TerminalSymbol.__init__(self, name)
+    def try_consume(self, stream):
+        assert(isinstance(stream, WordStream))
+        rets = []
+        for n in xrange(1,self.max_words+1):
+            words = stream.peek_many(n)
+            if words is None:
+                break
+            w = ''.join(w for w in words)
+            if w in self.prob_set:
+                rets.append(
+                    (n,self.prob_set.getInformationPacket(w, words))
+                )
+        #sort the returned possible instances by decreasing probability
+        #(same as increasing information content)
+        rets.sort(key=lambda x:x[1].info_content)
+        return rets or False
 
 class InclusionSetTerminal(TerminalSymbol):
     def __init__(self, name, inc_set, max_words=1):

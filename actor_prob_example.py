@@ -3,14 +3,14 @@ from rdp import *
 from ngrams import *
 from pybloom import BloomFilter
 from edits import *
+from distribute import *
 
-#initialize actor inclusion set
-with open('blooms/actor_names', 'rb') as f:
-    actor_bloom = BloomFilter.fromfile(f)
-with open('ngpols/actor_names', 'rb') as f:
-    actor_ngpol = NGPOLFilter.fromfile(f)
-actor_fuzzy = BloomFSS(actor_bloom, 1)
-actor_filt = OrSet([actor_ngpol, actor_fuzzy])
+#initialize actor probset
+with open('probsets/actor_names', 'rb') as f:
+    actor_probset1 = NgramProbSet.fromfile(f)
+with open('probsets/actor_names_len', 'rb') as f:
+    actor_probset2 = LengthProbSet.fromfile(f)
+actor_probset = JoinedProbabilitySet([actor_probset1, actor_probset2])
 
 #initialize movie name inclusion set
 with open('ngpols/film_titles', 'rb') as f:
@@ -28,7 +28,7 @@ will_ = InclusionSetTerminal(
     set(['WILL', 'ARE'])
 );
 
-actor = InclusionSetTerminal('actor', actor_filt , max_words=3)
+actor = ProbabilitySetTerminal('actor', actor_probset, max_words=3)
 
 in_ = InclusionSetTerminal(
     'IN', set(['IN','ACTIN', 'ACTINGIN','PERFORMINGIN', 'PERFORMIN']),
@@ -86,14 +86,20 @@ while True:
     words = tokenize(sentence)
     stream = WordStream(words)
     parser = Parser(stream, gram)
-    valid = False
+    trees = []
     for interp in parser.parse_all():
         if not stream.finished():
             continue
-        print '*'*70
-        print interp.to_parse_tree()
-        valid = True
-    if valid:
-        print '*'*70
+        trees.append(interp.to_parse_tree())
+    if trees:
+        trees.sort(key=lambda x:x.get_info_content())
+        if len(trees)==1:
+            print trees[0]
+        else:
+            for tree in trees[:3]:
+                print "*"*70
+                print "Info Content: %f"%tree.get_info_content()
+                print tree
+            print "*"*70
     else:
         print "No valid interpretations found."

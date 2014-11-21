@@ -2,6 +2,7 @@
 
 from grammar import *
 from streams import ParsingStream
+from prob import *
 from itertools import ifilter
 import traceback
 
@@ -195,6 +196,14 @@ class ParseNode:
         #used if not terminal
         self.prev = None
         self.next = None
+    def get_info_content(self):
+        if self.instance is not None:
+            if isinstance(self.instance, InformationPacket):
+                return self.instance.info_content
+            else:
+                return 0
+        else:
+            return sum(c.get_info_content() for c in self.children)
     def iter_nodes(self, pfilter=None):
         if pfilter is not None and not pfilter(self):
             return
