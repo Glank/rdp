@@ -67,6 +67,7 @@ by searching only the 3 parse trees? Well, all the representations longer than 3
 
 \newtheorem{divconq}{Theorem}
 \begin{divconq}
+\label{divconq}
 Let $s$ be a string and let $R$, $A$, and $B$ be sets of representations such that $R \subseteq A \cup B$ and $B \subseteq R$.
 If $\forall x \in A : \lnot valid(x, s)$ then $P(s, R) = P(s, B)$. 
 \end{divconq}
@@ -80,6 +81,56 @@ And if $r \in R$ and $r \not\in B$ then $r \in A$ since $R \subseteq A \cup B$ a
 But that contradicts our assumption that $\forall x \in A : \lnot valid(x,s)$.
 \qedhere
 \end{proof}
+
+That's a useful theorem because it allows us to divide the problemset and efficiently tackle parsing problems recursively.
+Let's consider another example CFG, $G$:
+\begin{align*}
+S &\rightarrow a S\\
+S &\rightarrow b S\\
+S &\rightarrow \epsilon
+\end{align*}
+Which defines the set of potential parse trees $R_G$. Now let's parse the string $"bab"$: solving $P("bab", R_G)$.
+
+We'll start by dividing the set $R_G$ into into three parts,
+$R_{Ga}$, $R_{Gb}$ and $R_{G\epsilon}$ where:
+\begin{align*}
+R_{Ga} &= \{ \forall r \in R_G : \exists n , r = (S, \{a,n\}) \}\\
+R_{Gb} &= \{ \forall r \in R_G : \exists n , r = (S, \{b,n\}) \}\\
+R_{G\epsilon} &= \{ (S, \{\}) \}
+\end{align*}
+More simply, $R_{Ga}$ contains all parse trees that are produced by first following the production rule $S \rightarrow a S$;
+$R_{Gb}$ by first following the second production rule (for $b$); and $R_{G\epsilon}$ by following the third production rule first
+which results in the empty string.
+
+We can rule out $R_{Ga}$ and $R_{G\epsilon}$ because $"bab"$ does not start with $"a"$ and is not an empty string.
+Applying theorem \ref{divconq}, we can can reduce the problem by noting that $P("bab", R_G) = P("bab", R_{Gb})$.
+Then we can further divide $R_{Gb}$ into $R_{Gba}$, $R_{Gbb}$ and $R_{Gb\epsilon}$ where:
+\begin{align*}
+R_{Gba} &= \{ \forall r \in R_Gb : \exists n , r = (S, \{b, (S, \{a,n\})\}) \} \\
+R_{Gbb} &= \{ \forall r \in R_Gb : \exists n , r = (S, \{b, (S, \{b,n\})\}) \} \\
+R_{Gb\epsilon} &= \{ (S, \{b, (S, \{\})\}) \}
+\end{align*}
+
+And we can further narrow the problem by noting that $P("bab", R_{Gb}) = P("bab", R_{Gba})$.
+Applything this same logic again leads to the conclusion $P("bab", R_{Gba}) = P("bab", R_{Gbab})$.
+Then dividing $R_{Gbab}$ once more we finally have narrowed down the problem to a single result:
+
+\begin{align*}
+R_{Gbaba} &= \{ \forall r \in R_Gbab : \exists n , r = (S, \{b, (S, \{a, (S, \{b, (S, \{a,n\})\})\})\}) \} \\
+R_{Gbabb} &= \{ \forall r \in R_Gbab : \exists n , r = (S, \{b, (S, \{a, (S, \{b, (S, \{b,n\})\})\})\}) \} \\
+R_{Gbab\epsilon} &= \{ (S, \{b, (S, \{a, (S, \{b, (S, \{\})\})\})\}) \}
+\end{align*}
+
+The answer only $R_{Gbab\epsilon}$ since all valid strings represented in $R_{Gbaba}$ and $R_{Gbabb}$ are longer than $"bab"$.
+In the whole procedure, we have shown:
+\begin{align*}
+P("bab", R_G)
+&= P("bab", R_{Gb})\\
+&= P("bab", R_{Gba})\\
+&= P("bab", R_{Gbab})\\
+&= P("bab", R_{Gbab\epsilon})\\
+&= \{ (S, \{b, (S, \{a, (S, \{b, (S, \{\})\})\})\}) \}
+\end{align*}
 
 \bibliography{parse}{}
 \bibliographystyle{plain}
