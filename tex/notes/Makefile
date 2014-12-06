@@ -5,7 +5,7 @@ all:
 	pdflatex notes
 
 publish: all
-	mv notes.pdf ../notes.pdf
+	mv notes.pdf ../../notes.pdf
 
 view: all
 	xdg-open notes.pdf
