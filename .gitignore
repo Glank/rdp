@@ -1,10 +1,10 @@
 *.pyc
-tex/*.aux
-tex/*.bbl
-tex/*.blg
-tex/*.dvi
-tex/*.log
-tex/*.pdf
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.log
+*.pdf
 *.swp
 .coverage
 build

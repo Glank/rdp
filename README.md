@@ -3,7 +3,7 @@ rdp
 
 A versatile parser writen in python.
 
-See `notes.pdf` for more info.
+See `notes.pdf` and `parse.pdf` for more info.
 
 Setup
 ---
