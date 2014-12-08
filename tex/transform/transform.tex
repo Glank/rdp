@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\graphicspath{{../../umlet/}}
+
+\begin{document}
+
+\title{Transforming Grammers and the Effects on Parse Trees}
+\author{Ernest Kirstein}
+\maketitle
+
+Implementing a parser often requires a grammar with certain properties.
+\cite{lewis, compiler}
+There are also special properties that a grammer can have which will make
+parsing more efficient. \cite{compiler, reghizzi}
+
+But modifying a grammar can be expensive from a software engineering perspective.
+Using a non-intuitive form of the grammer will make implementing compilation 
+more difficult since the parse trees produced using the modified grammer will
+be different than those one would expect from the natural, unmodified form of the
+grammar.
+
+An especially expensive engineering problem would be modifying an already-implemented
+compiler to use a newly discovered grammar property. Implementing that change
+would also require developers to change both the parser and the code generator
+which uses the output of the parser.
+
+I propose a radical change - a way to avoid that highly coupled design. Let parsers
+use a special modified grammer and let the compiler use the more natural form of
+the grammar. Impossible? No. Impractical? Maybe.
+
+\bibliography{transform}{}
+\bibliographystyle{plain}
+\end{document}

@@ -132,6 +132,13 @@ P("bab", R_G)
 &= \{ (S, \{b, (S, \{a, (S, \{b, (S, \{\})\})\})\}) \}
 \end{align*}
 
+This example procedure shows how top down parsing realy works. Since iterating over all possible parse-tree prepresentations
+would be impossible, a parser can divide the set of possible parse trees into smaller and smaller subsets and eliminate as
+many solutions possible all at once.
+
+\section{Parsing - Constructively}
+TODO - Bottom Up Parsing
+
 \bibliography{parse}{}
 \bibliographystyle{plain}
 \end{document}
