@@ -5,6 +5,8 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \graphicspath{{../../umlet/}}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Definition}
 
 \begin{document}
 
@@ -31,6 +33,50 @@ which uses the output of the parser.
 I propose a radical change - a way to avoid that highly coupled design. Let parsers
 use a special modified grammer and let the compiler use the more natural form of
 the grammar. Impossible? No. Impractical? Maybe.
+
+\section{Definitions}
+
+\begin{definition}
+\label{symbol}
+A {\em symbol} is an abstract building block used in formal grammar definitions.
+Symbols may be either {\em terminal} or {\em non-terminal} (an artificial construction).
+In practical examples, terminal symbols often correspond to tokens or printable characters, 
+while non-terminal symbols correspond to their.
+\end{definition}
+
+\begin{definition}
+A {\em string} is an ordered list of symbols.
+\end{definition}
+
+\newtheorem{prodrule}{Definition}
+\begin{prodrule}
+A \em{context free production rule} describes how a symbol in
+a string can be replaced with another string.
+\end{prodrule}
+
+\newtheorem{cfg}{Definition}
+\begin{cfg}
+A \em{context-free} gramma
+\end{cfg}
+
+\newtheorem{tree}{Definition}
+\begin{tree}
+A {\em parse tree} is an ordered, rooted tree who's nodes correspond to the
+following of production rules in a context-free grammar.
+\end{tree}
+
+\newtheorem{parse}{Theorem}
+\begin{parse}
+Let $G$ and $G'$ be weakly equivalent grammars.
+Then for every parse tree, $t$, generated under
+$G$ there exists a weekly equivalent parse tree $t'$ under $G'$. 
+\end{parse}
+\begin{proof}
+Let $G$ and $G'$ be weakly equivalent grammars.
+Therefore, the language produced by $G$, $L(G)$, is equal to
+the language produced by $G'$. For all strings, $s$, in $L(G)$
+there exists a tree $t$ 
+\end{proof}
 
 \bibliography{transform}{}
 \bibliographystyle{plain}
