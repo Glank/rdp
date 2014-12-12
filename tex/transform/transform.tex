@@ -5,8 +5,10 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \graphicspath{{../../umlet/}}
+
 \newtheorem{definition}{Definition}
-\newtheorem{theorem}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{notation}{Notation}
 
 \begin{document}
 
@@ -34,49 +36,132 @@ I propose a radical change - a way to avoid that highly coupled design. Let pars
 use a special modified grammer and let the compiler use the more natural form of
 the grammar. Impossible? No. Impractical? Maybe.
 
-\section{Definitions}
+\section*{Condensed Version}
 
 \begin{definition}
-\label{symbol}
 A {\em symbol} is an abstract building block used in formal grammar definitions.
-Symbols may be either {\em terminal} or {\em non-terminal} (an artificial construction).
-In practical examples, terminal symbols often correspond to tokens or printable characters, 
-while non-terminal symbols correspond to their.
 \end{definition}
 
 \begin{definition}
 A {\em string} is an ordered list of symbols.
 \end{definition}
 
-\newtheorem{prodrule}{Definition}
-\begin{prodrule}
-A \em{context free production rule} describes how a symbol in
+\begin{definition}
+A {\em context free production rule} describes how a symbol in
 a string can be replaced with another string.
-\end{prodrule}
+\end{definition}
 
-\newtheorem{cfg}{Definition}
-\begin{cfg}
-A \em{context-free} gramma
-\end{cfg}
+I will refer to the symbol which is replaced as the 'head' of the production
+rule. And I'll refer to the string which the 'head' is replaced with as the
+'tail' of the production rule.
 
-\newtheorem{tree}{Definition}
-\begin{tree}
+For example, a production rule $S \rightarrow a b c$ might be applied to the 
+string $"x v S t n B"$ to form the string $"x v a b c t n B"$. It's 'head' would
+be the symbol $S$ and it's tail would be the string $"a b c"$.
+
+\begin{definition}
+A symbol may be {\em terminal} if it is not the head of any production rule.
+\end{definition}
+
+In practical examples, terminal symbols often correspond to tokens or printable characters, 
+while non-terminal symbols correspond to more abstract concepts. I may refer to a string
+as terminal, in which case I mean string which is composed entirely of terminal symbols.
+
+\begin{definition}
+A \em{context-free grammar} is an order list of context free production rules.
+\end{definition}
+
+Context free grammars, CFGs, can get quite complicated. Here's a simple example:
+\begin{align}
+S &\rightarrow a\\
+S &\rightarrow a S
+\end{align}
+\setcounter{equation}{0}
+
+\begin{definition}
 A {\em parse tree} is an ordered, rooted tree who's nodes correspond to the
-following of production rules in a context-free grammar.
-\end{tree}
+following of production rules in a context-free grammar. The leaves of a
+parse tree form the string which would be produced by following the
+production rules in any decending order of their application in the layers of the
+parse tree.
+\end{definition}
 
-\newtheorem{parse}{Theorem}
-\begin{parse}
-Let $G$ and $G'$ be weakly equivalent grammars.
-Then for every parse tree, $t$, generated under
-$G$ there exists a weekly equivalent parse tree $t'$ under $G'$. 
-\end{parse}
+\begin{notation}
+For brevity, nodes which correspond to a symbol which has not been transformed
+by a production rule will be writen using the symbol alone. Non-leaf nodes will
+be written using an ordered pair of symbol and corresponding set of child
+nodes. For example $(S, \{a, b, c\})$.
+\end{notation}
+
+Consider the example grammar (above). We can start a parse tree rooted at $S$:
+$t_0 = S$. Applying the second production rule to this root node, we get the parse tree:
+$t_1 = (S, \{a, S\})$ which corresponds to the string $"a S"$.
+An application of the first production rule to $t_1$ would yield the tree 
+$t_2 = (S, \{a, (S, \{a\})\})$ which produces the string $"a a"$. 
+
+I may refer to parse tree's as terminal, in which case I mean that the parse tree produces
+a terminal string.
+
+\begin{definition}
+The {\em language} of a context free grammar is the set of terminal strings
+can be produced by following rules in that grammar. If $G$ is a CFG, then $L(G)$ shall
+refer to it's language.
+\end{definition}
+
+\begin{theorem}
+\label{parseable}
+For every string in a CFG's language there exists some terminal parse tree which produces
+that string.
+\end{theorem}
+\begin{proof}
+Since every string in the language is produced by following the set of rules in some CFG,
+then it follows that the order in which those rules are followed may be used to construct
+a parse tree (by definition). And since that string is, by definition, terminal then so
+is that parse tree.
+\end{proof}
+
+\begin{notation}
+If $G$ is a CFG then let $T(G)$ refer to the set of terminal parse trees that may be produced
+using the rules of that grammar.
+\end{notation}
+
+\begin{definition}
+If two CFG's produce the same language, then they shall be called {\em weakly equivalent}; noted
+by $G \approx G'$.
+\end{definition}
+
+\begin{definition}
+If two parse trees produce the same string, they shall be called {\em weakly equivalent}; noted
+by $t \approx t'$.
+\end{definition}
+
+
+\begin{theorem}
+If $G$ and $G'$ are weakly equivalent grammars then there exists a function, which shall be called
+a {\em tree-mapping function}, $f:T(G) \rightarrow T(G')$ such that $\forall t \in T(G): t \approx f(t)$.
+\end{theorem}
+
 \begin{proof}
 Let $G$ and $G'$ be weakly equivalent grammars.
-Therefore, the language produced by $G$, $L(G)$, is equal to
-the language produced by $G'$. For all strings, $s$, in $L(G)$
-there exists a tree $t$ 
+For all strings, $s$, in $L(G)$ there exists a tree $t \in T(G)$ which produces $s$ (by Theorem \ref{parseable}).
+Since $G \approx G'$ then $L(G) = L(G')$ so $s \in L(G) \implies s \in L(G')$. 
+Since $s \in L(G')$ it must also be true that there exists a tree $t' \in T(G')$ which produces $s$.
+Then for every parse tree, $t \in T(G)$ there exists a $t' \in T(G')$ such that
+$t \approx t'$. Let $f$ be the function which maps each of those $t$ to that $t'$.
 \end{proof}
+
+
+%\begin{definition}
+%Let $G$ and $G'$ be two context free grammars. If and only if there exists a bijective tree-mapping function
+%for those two grammars, then those two grammars are {\em strongly equivalent}.
+%\end{definition}
+
+\section*{Conclusion}
+
+Thus, if we have some calculable function which transforms a CFG $G$ into some weakly equivalent CFG, $G'$ and we can parse
+a string $s$ into it's corresponding parse tree $t' \in T(G')$ then we know there exists a function
+which mapps $t'$ into some tree $t \in T(G)$. If we can calculate that tree-mapping function of $G'$ to $G$
+we can parse strings in $G$ indirectly (via $G'$), without being able to directly parse strings in $G$. 
 
 \bibliography{transform}{}
 \bibliographystyle{plain}
