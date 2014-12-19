@@ -1,0 +1,51 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\graphicspath{{../../umlet/}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\title{Using Ontologies to Construct Natural Language Question Grammars}
+\author{Ernest Kirstein}
+\maketitle
+
+Ontologies have classes, attributes, and relations which may convey some information
+that may be useful in parsing natural language questions, if only those bits of data
+can be conveyed in some useful fashon to a NL interpreter.
+
+Classes might be mapped to grammatical symbols. Instances of classes with name
+attributes or related name class instances might be used to compile some
+statistical classifier of strings.
+
+I reckon that classes in similar ontological contexts might also fit in similar gramatical contexts.
+
+\section*{Ontologically Informed Grammars}
+
+Consider the abstract question, "Does (A) have a (B)?".
+What sorts of things must $A$ and $B$ be? 
+In an ontological context, $A$ and $B$ must be connected by a relation
+that specifies that the class of $A$ may possess an instance of the class of $B$.
+
+"Does blue have a dog?" is not a valid question because a color cannot possess
+an animal. In fact, possed with such a question a person might naturally assume
+that 'blue' was meant to be 'Blue' (as a nicknam of some yet unknown person).
+
+This is not a totally novel idea, systems which use ontologies that use
+ontological information to inform parsers have been proposed and created \cite{ontgram}.
+
+There's a question of efficiency, though. Is it best to have a broad grammar
+and let the ontology rule out invalid interpretations?
+Or would it be more reasonable to build the ontological restrictions into the grammar
+by creating new symbols and rules? I suspect that that's an optimization problem
+which depends on context.
+
+\bibliography{questions}{}
+\bibliographystyle{plain}
+\end{document}
