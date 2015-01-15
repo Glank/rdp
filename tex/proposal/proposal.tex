@@ -1,0 +1,58 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\graphicspath{{../../umlet/}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\title{Computing Solutions to Multifacited Natural Language Questions over Semantic Knowledge Bases}
+\author{Ernest Kirstein}
+\maketitle
+
+Query languages like SPARQL help expert users answer complex
+questions about semantic data knowledge bases. Unfortunately, query languages
+can only be used by expert users who require extensive training. 
+A natural language interface could help non-expert users access the 
+semantic web without expert training. The end goal would be to allow
+non-expert users to achieve the same level of sophistication 
+as an expert query language user. 
+
+Work by Kaufmann and Bernstein \cite{usability} indicates 
+that users have a “clear preference” for even limited natural language interfaces 
+when compared to keyword or query language interfaces. 
+Other recent works \cite{mapping, freya, galitsky}
+have shown that simple natural language questions can be translated based 
+on known sentence structure using (among other things) NER, named-entity recognition.
+
+These systems are limited - they can only handle simple, direct questions. 
+A recent publication by Sharef et al. \cite{issues} outlines obstacles in developing full 
+natural language interfaces for the semantic web. That paper notes a particular 
+difficulty with parsing multifaceted questions - questions with multiple 
+variable, constraints, or operations. This is the gap which my thesis will 
+attempt to bridge.
+
+The foundations of both compiler design and natural language processing
+have significant overlap \cite{chomsky, reghizzi}. 
+However, in practice, there has not been
+much synergy between the two disciplines \cite{aho, anatomy, reghizzi}.
+I believe cooperation between these astranged fields is necessary to move forward
+in either.
+
+My approach will be to build a "natural language compiler" of sorts.
+That is, to approach the problem of converting natural language questions into
+SPARQL queries just as one might convert Java source code into byte code.
+The problems are, or course, an order of magnitude appart in complexity.
+So I will only aim to parse a limited range of natural language questions.
+But in that range of questions, I hope to show that multifacited questions
+can be handeled on a limited basis.
+
+\bibliography{proposal}{}
+\bibliographystyle{plain}
+\end{document}

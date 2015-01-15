@@ -225,7 +225,7 @@ def test():
     import traceback
     import json
     names = []
-    with open('sample_data/actor_names.json', 'r') as f:
+    with open('sample_data/dbpedia_books.json', 'r') as f:
         j = json.load(f)
         for b in j['results']['bindings']:
             name = b['name']['value'].upper()
@@ -234,7 +234,7 @@ def test():
     random.shuffle(names)
     names = list(set(names))[:300]
     cl = jaccard_ngram_cluster(names, 3)
-    with open('clusters/actor_names', 'w') as f:
+    with open('clusters/book_titles', 'w') as f:
         pickle.dump(cl, f)
 
 def test2():
@@ -250,15 +250,15 @@ def test2():
             print random.sample(c,min(len(c),4))
 
 def test3():
-    with open('clusters/actor_names', 'r') as f:
+    with open('clusters/book_titles', 'r') as f:
         cl = pickle.load(f)
-    clusters = cl.getlevel(.5)
+    clusters = cl.getlevel(.9)
     import re
     import random
     import traceback
     import json
     names = []
-    with open('sample_data/actor_names.json', 'r') as f:
+    with open('sample_data/dbpedia_books.json', 'r') as f:
         j = json.load(f)
         for b in j['results']['bindings']:
             name = b['name']['value'].upper()
@@ -285,5 +285,5 @@ def test3():
 
 if __name__=="__main__":
     import sys
-    sys.setrecursionlimit(1500)
+    sys.setrecursionlimit(3000)
     test3()
