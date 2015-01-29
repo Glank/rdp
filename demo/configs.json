@@ -1,0 +1,15 @@
+{
+    "named_entity_types":[
+        {
+            "name":"author",
+            "query":{
+                "query_file":"demo/author_query.sparql",
+                "result_file":"demo/build/author/results.json",
+                "endpoint":"http://dbpedia.org/sparql"
+            },
+            "model":{
+                "build_folder":"demo/build/author"
+            }
+        }
+    ]
+}
