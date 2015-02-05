@@ -133,9 +133,9 @@ word names, levenshtein distance is probably the prefered metric.
 The Jaccard index by itself is a fairly good way to compare names.
 But it would be better if the algorithm also noticed things like
 how 'unusual' certain name patterns were. 
-"RJ Smith" might be closer to "CS Smith" than "RJ" based purely
+"Tom Smith" might be closer to "John Smith" than "Tom" based purely
 on their Jaccard index, but any reasonable person would pick
-"RJ Smith" and "RJ" to be the closer names because "Smith" is
+"Tom Smith" and "Tom" to be the closer names because "Smith" is
 such a common surname.
 
 In more technical terms, the part of the string "Smith"
@@ -169,9 +169,12 @@ I(e_i) &= \log\left(\frac{1}{P(e_i)}\right)\\
 &= -\log(P(e_i))
 \end{align*}
 
-Considering that we're searching a large sample of names, we
-can get pretty close to a true approximation of the probability
-of an ngram occuring in that set of names by:
+To determine this probability, we can look at the frequency
+of the n-gram in a large sample set of names.
+We need to index those names anyways, as part of the named entity
+recognition proces. With a large set, we can get pretty close to a true 
+approximation of the probability of an n-gram occuring in 
+a general population of those names:
 
 \begin{align*}
 P(e_i) \approx \frac{count(e_i; N)+1}{|N|+2}
@@ -192,7 +195,18 @@ an information sensitive comparision function: $\hat{J}(x,y)$:
 \vec{I} &= \left< I(e_1), I(e_2), ... I(e_n) \right>
 \end{align*}
 
-TODO: Insert Example
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth,natwidth=1,natheight=1]{info_comp.png}
+    \caption{Information Sensitive Name Matching}
+    \label{fig:lev_comp}
+\end{figure}
+
+The above example shows this comparison in action. In the top comparision,
+without considering information content, the closest pair of names is
+"tom smith" and "john smith". But after indexing the sample names, we
+can calculate comparisons that do consider the information content. Then
+we can see that the closer names are "tom smith" and "tom".
 
 \section{Ambiguity}
 What should the system do when the user inputs a name which is close
