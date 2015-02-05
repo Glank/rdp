@@ -24,7 +24,7 @@ class NEQuery:
             return f.read()
     def clean(self):
         if os.path.isfile(self.result_fn):
-            os.path.remove(self.result_fn)
+            os.remove(self.result_fn)
     def build(self, rebuild=False):
         #skip this step if already build and not forced to rebuild
         if os.path.isfile(self.result_fn) and not rebuild:
@@ -49,6 +49,7 @@ class ResultMapper:
         This method is an iterator which yields tuples of the form
         (entity uri, given name, standardized name)"""
         raise NotImplementedError()
+
 class PersonNameMapper(ResultMapper):
     def stand(self, name):
         return ''.join(re.findall('[A-Z0-9]+',name.upper()))
@@ -69,8 +70,6 @@ class NEModel:
         self.entity_type = entity_type
         self.build_folder = configs['build_folder']
         #TODO: make configurable
-        self.result_mapper = PersonNameMapper()
-        #TODO: make configurable
         self.model_types = ['length', 'ngram']
     def _build_model_(self, model_type, rebuild):
         fn = os.path.join(self.build_folder, model_type)
@@ -78,7 +77,7 @@ class NEModel:
         if os.path.isfile(fn) and not rebuild:
             return
         results = self.entity_type.query.get_results()
-        names = [n[2] for n in self.result_mapper.map(results)]
+        names = [n[2] for n in self.entity_type.result_mapper.map(results)]
         if model_type=='length':
             prob_set = LengthProbSet(names)
         elif model_type=='ngram':
@@ -92,10 +91,10 @@ class NEModel:
         for model_type in self.model_types:
             self._build_model_(model_type, rebuild)
     def clean(self):
-        for model_type in self.model_type:
+        for model_type in self.model_types:
             fn = os.path.join(self.build_folder, model_type)
             if os.path.isfile(fn):
-                os.path.remove(fn)
+                os.remove(fn)
     def get_probset(self):
         probsets = []
         for model_type in self.model_type:
@@ -138,7 +137,7 @@ class NEIdentifier:
         orig_name = name
         best_matches = []
         results = self.query.get_results()
-        mapper = self.entity_type.model.result_mapper
+        mapper = self.entity_type.result_mapper
         name = mapper.stand(name)
         for uri, given, stand in mapper.map(results):
             dist = jaccard_ngram_dist(stand,name,3)
@@ -166,6 +165,7 @@ class NamedEntityType:
         self.query = NEQuery(configs.get('query',{}))
         self.model = NEModel(self, configs.get('model',{}))
         self.identifier = NEIdentifier(self, configs.get('identifier',{}))
+        self.result_mapper = PersonNameMapper()
     def build(self, rebuild=False):
         self.query.build(rebuild=rebuild)
         self.model.build(rebuild=rebuild)
