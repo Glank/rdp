@@ -28,5 +28,6 @@
             "module":"demo.questions",
             "class":"BibliographyRequest"
         }
-    ]
+    ],
+    "tokenizer":"SimpleTokenizer"
 }

@@ -8,7 +8,7 @@ writen = WordTerminal('WRITEN')
 
 class BibliographyRequest(QuestionType):
     def __init__(self):
-        QuestionType.__init__('bibliography_request')
+        QuestionType.__init__(self, 'bibliography_request')
     def rule_tails(self, named_entities):
         yield [
             what, books, has,
@@ -17,10 +17,10 @@ class BibliographyRequest(QuestionType):
         ]
     def get_sparql(self, parse_tree, named_entities):
         author_symbol = named_entities['author'].symbol()
-        author = parse_tree_node.find_node(
+        author = parse_tree.find_node(
             lambda n:n.symbol==author_symbol
         )
-        name, uri = author.instance
+        name, full_name, uri = author.instance
         sparql = """
         PREFIX dbp:<http://dbpedia.org/resource/>
         PREFIX dbpowl:<http://dbpedia.org/ontology/>

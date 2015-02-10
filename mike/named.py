@@ -99,7 +99,7 @@ class NEModel:
                 os.remove(fn)
     def get_probset(self):
         probsets = []
-        for model_type in self.model_type:
+        for model_type in self.model_types:
             fn = os.path.join(self.build_folder, model_type)
             with open(fn, 'rb') as f:
                 if model_type=='length':

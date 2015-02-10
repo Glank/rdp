@@ -13,8 +13,8 @@ class QuestionType:
         self._symbol_ = Symbol(self.name)
         return self._symbol_
     def rules(self, root, named_entities):
-        rulez = [Rule(root, [head])]
         head = self.symbol()
+        rulez = [Rule(root, [head])]
         for tail in self.rule_tails(named_entities):
             rulez.append(Rule(head, tail))
         return rulez
@@ -39,11 +39,11 @@ def __preidentify_parse_tree__(parse_tree, named_entities):
         pass
     for node in parse_tree.iter_nodes():
         try:
-            for entity in named_entites:
+            for entity in named_entities:
                 if node.symbol==entity.symbol():
                     name = ' '.join(node.instance.obj)
-                    uri = entity.identifier.ident(name)
-                    node.instance = (name, uri)
+                    full_name, uri = entity.identifier.ident(name)
+                    node.instance = (name, full_name, uri)
                     raise NextNode()
         except NextNode:
             pass
@@ -55,9 +55,10 @@ class QuestionCollection:
             question = __get_question_type__(config)
             self.questions.append(question)
     def grammar(self, named_entities):
+        root = Symbol('S')
         rules = []
-        for question in questions:
-            rules.extend(question.rules, named_entities)
+        for question in self.questions:
+            rules.extend(question.rules(root, named_entities))
         g = Grammar(rules)
         g.compile()
         return g
