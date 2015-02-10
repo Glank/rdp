@@ -10,6 +10,23 @@
             "model":{
                 "build_folder":"demo/build/author"
             }
+        },
+        {
+            "name":"book",
+            "query":{
+                "query_file":"demo/book_query.sparql",
+                "result_file":"demo/build/book/results.json",
+                "endpoint":"http://dbpedia.org/sparql"
+            },
+            "model":{
+                "build_folder":"demo/build/book"
+            }
+        }
+    ],
+    "question_types":[
+        {
+            "module":"demo.questions",
+            "class":"BibliographyRequest"
         }
     ]
 }

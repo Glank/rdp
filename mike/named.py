@@ -1,5 +1,7 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 from distribute import *
+from ngrams import jaccard_ngram_dist
+from rdp import *
 import json
 import os.path
 import re
@@ -136,13 +138,13 @@ class NEIdentifier:
     def ident(self, name):
         orig_name = name
         best_matches = []
-        results = self.query.get_results()
+        results = self.entity_type.query.get_results()
         mapper = self.entity_type.result_mapper
         name = mapper.stand(name)
         for uri, given, stand in mapper.map(results):
             dist = jaccard_ngram_dist(stand,name,3)
             best_matches.append(((given,uri),dist))
-            if len(best_authors)>100:
+            if len(best_matches)>100:
                 best_matches.sort(key=lambda x:x[1])
                 best_matches = best_matches[:self.max_matches]
         best_matches.sort(key=lambda x:x[1])
@@ -159,16 +161,51 @@ class NEIdentifier:
             identified = possibles[0]
         return identified
 
+class NamedEntityTerminal(ProbabilitySetTerminal):
+    def __init__(self, entity_type):
+        #only to be called by NamedEntity!!!
+        self.entity_type = entity_type
+        prob_set = entity_type.model.get_probset()
+        ProbabilitySetTerminal.__init__(
+            self, entity_type.name, prob_set
+        )
+
 class NamedEntityType:
     def __init__(self, configs):
         self.name = configs['name']
         self.query = NEQuery(configs.get('query',{}))
         self.model = NEModel(self, configs.get('model',{}))
         self.identifier = NEIdentifier(self, configs.get('identifier',{}))
+        #TODO: make this configurable
         self.result_mapper = PersonNameMapper()
+        self.gram_symbol = None
     def build(self, rebuild=False):
         self.query.build(rebuild=rebuild)
         self.model.build(rebuild=rebuild)
     def clean(self):
         self.query.clean()
         self.model.clean()
+    def symbol(self):
+        if self.gram_symbol:
+            return self.gram_symbol
+        self.gram_symbol = NamedEntityTerminal(self)
+        return self.gram_symbol
+
+class NamedEntityCollection:
+    def __init__(self, configs):
+        self.entities = [NamedEntityType(config) for config in configs]
+        self.entities_by_name = {}
+        for entity in self.entities:
+            self.entities_by_name[entity.name] = entity
+    def __getitem__(self, name):
+        return self.entities_by_name[name]
+    def __iter__(self):
+        return iter(self.entities)
+    def build(self, rebuild=False):
+        for entity in self.entities:
+            entity.build(rebuild=rebuild)
+    def clean(self):
+        for entity in self.entities:
+            entity.clean()
+    def symbol(self, name):
+        return self[name].symbol()
