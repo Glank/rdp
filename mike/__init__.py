@@ -18,7 +18,7 @@ class Mike:
         self.names.build(rebuild=rebuild)
     def _grammar_(self):
         return self.questions.grammar(self.names)
-    def get_sparql(self, sentence):
+    def get_sparql(self, sentence, verbose=False):
         words = self.tokenizer.tokenize(sentence)
         stream = WordStream(words)
         parser = Parser(stream, self._grammar_())
@@ -29,5 +29,8 @@ class Mike:
             trees.append(interp.to_parse_tree())
         if not trees:
             return None
-        best_interp = max(trees, key=lambda x:x.get_info_content())
+        best_interp = min(trees, key=lambda x:x.get_info_content())
+        if verbose:
+            print "Best Interpretation:"
+            print best_interp
         return self.questions.get_sparql(best_interp, self.names)

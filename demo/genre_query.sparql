@@ -2,8 +2,12 @@ PREFIX dbpprop:<http://dbpedia.org/property/>
 PREFIX dbpowl:<http://dbpedia.org/ontology/>
 PREFIX dbpresource:<http://dbpedia.org/resource/>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>
 SELECT ?entity ?name
 WHERE{
-    ?entity a dbpowl:Writer;
-        rdfs:label ?name.
+    ?x dbpprop:genre ?entity;
+        a dbpowl:Book.
+    ?entity rdfs:label ?name.
+    FILTER langMatches( lang(?name), "EN" ).
 }
+GROUP BY ?entity

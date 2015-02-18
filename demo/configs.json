@@ -21,12 +21,27 @@
             "model":{
                 "build_folder":"demo/build/book"
             }
+        },
+        {
+            "name":"genre",
+            "query":{
+                "query_file":"demo/genre_query.sparql",
+                "result_file":"demo/build/genre/results.json",
+                "endpoint":"http://dbpedia.org/sparql"
+            },
+            "model":{
+                "build_folder":"demo/build/genre"
+            }
         }
     ],
     "question_types":[
         {
             "module":"demo.questions",
             "class":"BibliographyRequest"
+        },
+        {
+            "module":"demo.questions",
+            "class":"AuthorSearch"
         }
     ],
     "tokenizer":"SimpleTokenizer"

@@ -152,7 +152,10 @@ class NEIdentifier:
         best_dist = best_matches[0][1]
         possibles = [best_matches[0][0]]
         for match, dist in best_matches[1:]:
-            percent_diff = (dist-best_dist)*2/float(dist+best_dist)
+            if (dist+best_dist)==0:
+                percent_diff = 0
+            else:
+                percent_diff = (dist-best_dist)*2/float(dist+best_dist)
             if percent_diff < self.max_percent_diff:
                 possibles.append(match)
         if len(possibles)>1:
@@ -167,7 +170,7 @@ class NamedEntityTerminal(ProbabilitySetTerminal):
         self.entity_type = entity_type
         prob_set = entity_type.model.get_probset()
         ProbabilitySetTerminal.__init__(
-            self, entity_type.name, prob_set
+            self, entity_type.name, prob_set, max_words=3
         )
 
 class NamedEntityType:

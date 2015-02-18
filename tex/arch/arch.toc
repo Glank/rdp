@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}A Brief Introduction to the Semantic Web}{2}
+\contentsline {section}{\numberline {2}Converting Natural Language Questions into \\SPARQL Queries}{2}
+\contentsline {subsection}{\numberline {2.1}Named Entity Recognition}{3}
+\contentsline {subsection}{\numberline {2.2}Parsing}{3}
+\contentsline {subsection}{\numberline {2.3}Resolution}{5}
+\contentsline {subsection}{\numberline {2.4}Compilation}{6}
+\contentsline {section}{\numberline {3}Software Architecture}{6}
+\contentsline {section}{\numberline {4}Resolving User Input Names to RDF Entities}{8}
+\contentsline {subsection}{\numberline {4.1}Name Standardization and Enumeration}{9}
+\contentsline {subsection}{\numberline {4.2}Jaccard Index}{10}
+\contentsline {subsubsection}{\numberline {4.2.1}Comparison with Levenshtein (Edit) Distance}{10}
+\contentsline {subsubsection}{\numberline {4.2.2}Information Content Sensitive Jaccard Index}{11}
+\contentsline {subsection}{\numberline {4.3}Ambiguity}{13}
+\contentsline {section}{\numberline {5}Top-Down Parsing}{14}
+\contentsline {subsection}{\numberline {5.1}Introduction to Top-Down Parsing without Syntax Diagrams}{14}
+\contentsline {subsection}{\numberline {5.2}Effect of Grammar Transformations on Parse Trees}{19}
+\contentsline {subsubsection}{\numberline {5.2.1}Direct Left Recursion Elimination}{19}
+\contentsline {subsubsection}{\numberline {5.2.2}Substitution}{20}
+\contentsline {subsection}{\numberline {5.3}Compiling a Context Free Grammar for RD Parsing}{21}

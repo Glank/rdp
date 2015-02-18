@@ -1,6 +1,6 @@
 all:
 	latex arch
-	-bibtex arch
+	bibtex arch
 	latex arch
 	pdflatex arch
 

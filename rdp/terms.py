@@ -49,7 +49,7 @@ class InclusionSetTerminal(TerminalSymbol):
 #SHTL = Synset Hyponym Tree Lemmas
 class SHTLTerminal(TerminalSymbol):
     def __init__(self, word, pos=None):
-        morphy = wn.morphy(word)
+        morphy = wn.morphy(word.lower())
         synsets = wn.synsets(morphy, pos=pos)
         hypo = lambda x: x.hyponyms()
         def iter_flatten(tree):
