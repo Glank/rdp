@@ -13,13 +13,13 @@
 \begin{document}
 
 \title{Querying the Semantic Web with Natural Language}
-\author{Ernest Kirstein}
+\author{Ernest Kirstein and Richard Scherl}
 \maketitle
 
 \tableofcontents
 
 \section{A Brief Introduction to the Semantic Web}
-The semantic web (as invisioned by Tim Berners-Lee et al.) is an extention of
+The semantic web (as envisioned by Tim Berners-Lee et al.) is an extension of
 the internet which provides more structure to the vast chaos of data on the
 net. The goal has always been for the semantic web to become
 a means for AI agents to share information and reasoning \cite{semantic}.
@@ -35,7 +35,7 @@ Then there are OWL ontologies which are RDF documents for describing relations
 between RDF entities\cite{owl}. OWL is more technically specified in such a
 way that it allows for further automated reasoning
 over RDF data stores. RDF may make the semantic web expressive, but OWL
-allows it to be intellegent.
+allows it to be intelligent.
 
 To unlock the power behind the semantic web, there needs to be a way for people
 to interface with it and ask questions about stored (or reasoned) information. 
@@ -47,13 +47,42 @@ SPARQL has a steep learning curve and is only accessible to expert users.
 
 The system I propose in this work attempts to make the semantic web more accessible
 by allowing users to ask questions in natural language. That is, plain English.
-The actuall implementation of this tool handels only a small range of questions,
-but it does demonstrate promissing possibilities.
+The actual implementation of this tool handles only a small range of questions,
+but it does demonstrate promising possibilities.
+
+\subsection{DBPedia}
+The website DBPedia\cite{dbpedia,dbpedia-swj} is a RDF data store containing information 
+which has been curated from Wikipedia. It is a massive collection of structured data
+containing over four million ontology-classified objects in over one hundred different
+languages. It is one of the largest open-source RDF databases on the web.
+
+The SPARQL queries in this work will target a portion of DBPedia's
+data pertaining to books and authors. There is no clear division between this set of
+data and the rest of the data store but that is just one more real-world complexity
+to hurdle. Any system interacting with RDF data should consider
+the data's naturally unbounded scope, even if the system itself is more constrained.
+
+DBPedia has its own ontology and ways of relating objects to one another. This means
+that, although the general principals involved would be the same, 
+it may be more difficult to create an interface for another data set than simply 
+replacing the URIs from DBPedia with another database's URIs.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth,natwidth=1,natheight=1]{umlet/book_ontology.pdf}
+    \caption{A few classes of the DBPedia ontology}
+    \label{fig:book_ontology}
+\end{figure}
+
+Figure \ref{fig:book_ontology} shows a small portion of the DBPedia ontology that
+will be used in this work. The RDFS labels of each class are what plug into the
+natural language parser to recognize the names of books, authors, and genres. 
+The classes are related by DBPedia's own property predicates.
 
 \section{Converting Natural Language Questions into \\SPARQL Queries}
 Since SPARQL is already a well-worn tool for navigating the semantic
-web, it make sence to leverage it. This system we have built recieves natural language
-questions such as, ``What author has writen both high fantasy and science fiction?"
+web, it make sense to leverage it. This system we have built receives natural language
+questions such as, ``What author has written both high fantasy and science fiction?"
 Then the system produces a SPARQL query which asks the same question. 
 The end goal is to allow general users to achieve the same level of sophistication
 as expert users using English rather than SPARQL.
@@ -76,20 +105,20 @@ The foundations of both compiler design and natural language processing
 have significant overlap \cite{chomsky, reghizzi}.
 However, in practice, there has not been
 much synergy between the two disciplines \cite{aho, anatomy, reghizzi}.
-I believe cooperation between these astranged fields is necessary to move forward
+I believe cooperation between these estranged fields is necessary to move forward
 in either.
 
 Our approach was be to build a ``natural language compiler" of sorts.
 That is, to approach the problem of converting natural language questions into
 SPARQL queries just as one might convert Java source code into byte code.
-The problems are, or course, an order of magnitude appart in complexity.
+The problems are, or course, an order of magnitude apart in complexity.
 So our only aim was only to parse a limited range of natural language questions.
-But in that range of questions, we intend to show that multifacited questions
-can be handeled on a limited basis.
+But in that range of questions, we intend to show that multifaceted questions
+can be handled on a limited basis.
 
 \subsection{Named Entity Recognition}
-Different types of named objects are recognized as part of the parsing process.
-Since the names are matched durring parsing, the NER is greatly improved by context.
+Different classes of named objects are recognized as part of the parsing process.
+Since the names are matched during parsing, the NER is greatly improved by context.
 Still, this matching requires a bit of preprocessing.
 
 Statistical character models are constructed from the output of queries for all 
@@ -97,17 +126,21 @@ objects of a certain type in the target RDF database.
 These models are used to recognize arbitrary tokens (or combinations of 
 tokens) within the parser's grammar. 
 
-These models allow for probablistic recognition of the input strings in 
-$O(1)$ time (at least, in relation to the number of objects in the RDF
+These models allow for probabilistic recognition of the input strings in 
+$O(1)$ time (in relation to the number of objects in the RDF
 database). They recognize variations on the names (typos, variations, etc.)
 within some user-defined bound. 
 
+Furthermore, these models allow for $O(1)$
+approximation of their 'probability' within the set of all the names of instances
+of that class. This is important for determining which interpretation of a
+question is the correct one: we can generally assume that the most probable
+interpretation is the correct one.
+
 \subsection{Parsing}
 
-TODO: Insert General Introduction to Top-Down Parsing 
-
 This system uses a custom parser which has been implemented especially for
-this project. One of the contributions of this work is the unique implemtation
+this project. One of the contributions of this work is the unique implementation
 of this parser. The parser automatically handles left recursion and a few other
 hiccups which usually give top-down parsers trouble. However, the parse trees
 (which the parser outputs) retain the original structure of the initial grammar.
@@ -121,7 +154,7 @@ recursion (etc.).
     \label{fig:high_level_parse}
 \end{figure}
 
-The grammar generated to handel the natural language questions
+The grammar generated to handle the natural language questions
 is composed of rules which handle each type of question.
 The `type' of question is vague: it is largely a matter of design preference.
 The broader the scope of a `type', the harder it will be to develop a grammar
@@ -149,10 +182,11 @@ Again, that is to be discussed in a later section.
 
 Given a natural language question, the parser then produces a number of
 parse trees and selects the "best" (most probable) interpretation. That
-interpretation 
+interpretation gets converted back into a form that would be produced from the
+original grammar (with left recursion etc. restored).
 
 \subsection{Resolution}
-After parsing, specific instances of named entities need to be 'resolved' to
+After parsing, specific instances of named entities need to be `resolved' to
 corresponding RDF entities. Natural language names (like "John Smith") are mapped
 to RDF URIs (like "http://sbc.net/smith394")
 in a semi-automated process. This boils down to searching a
@@ -160,9 +194,10 @@ database of names with a good fuzzy string matching algorithm and falling
 back on the user to select the appropriate name when there is no obvious best 
 match.
 
-A lot of work went into selecting the best fuzzy matching algorith for
-natural language names. Thought Levenshtein's `edit distance` metric
-is a good 
+A lot of work went into selecting the best fuzzy matching algorithm for
+natural language names. Though Levenshtein's `edit distance' metric
+is a good comparison function for spelling mistakes, we've found that
+a Jaccard index based function is more suited to the task. 
 
 \subsection{Compilation}
 Compiling SPARQL queries from the resolved parse trees is the last step.
@@ -217,12 +252,12 @@ parser so that semantic context could inform the NER.
     \label{fig:process}
 \end{figure}
 
-Another design concern was the accessability of the SPARQL endpoint.
-It would be ideal if the endpoint was always accessable, would accept an unlimited
+Another design concern was the accessibility of the SPARQL endpoint.
+It would be ideal if the endpoint was always accessible, would accept an unlimited
 number of queries, and would always respond quickly. But in practice, none of
 those ideals are true. As such, the results of certain queries
 (necessary for developing NER models and URI resolution) are cached into local files.
-The tradeoff is that data in the cache can stagnate. That problem is mitigated by 
+The trade-off is that data in the cache can stagnate. That problem is mitigated by 
 simply flushing the cached results periodically.
 
 
@@ -233,7 +268,7 @@ natural language questions over RDF databases. This poses several problems:
 names can be misspelled (e.g. "Swartseneger" for the label "Schwarzenegger"), 
 may be reordered (e.g. "John Smith" for the label "Smith, John"),
 or the name may be abbreviated (e.g. "R.L. Stine" for the label "Robert Lawrence Stine").
-That's not to meantion the small problem posed by people who have
+That's not to mention the small problem posed by people who have
 changed their name entirely, sometimes multiple times
 (e.g. "The artist formerly known as 'The artist formerly known as Prince'").
 And despite all of these convolutions, a natural language system will need to
@@ -248,9 +283,9 @@ over every single label in the RDF set, just those which belong to the particula
 type of object the user is asking about.
 
 There are a surplus of string comparison functions to choose from \cite{comparison}.
-For my particular application, I have used a varation on the {\em Jaccard index}.
-It is robust to mispellings and reorderings, with the added benefit of being quite efficient.
-The Jaccard index is used in datamining for efficiently comparining long documents,
+For my particular application, I have used a variation on the {\em Jaccard index}.
+It is robust to misspellings and reorderings, with the added benefit of being quite efficient.
+The Jaccard index is used in data mining for efficiently comparing long documents,
 but it is comparable to other more complex methods of name comparison \cite{comparison} and 
 anecdotal evidence suggests it will work well here.
 
@@ -270,7 +305,7 @@ trigger the system to prompt the user for confirmation anyways.
 
 Names with multiple parts, like "John Jacob Jingleheimer Schmidt", need to be matched by
 partial variation like "Schmidt", "Mr. Schmidt", and "John Schmidt". 
-Using a sufficieintly robust string comparison function, these variations will often 
+Using a sufficiently robust string comparison function, these variations will often 
 still match the full, multi-part name better than other multi-part names.
 But that's a dubious assumption to rely upon - it's best to tokenize the name and
 include the different partial variations as other names linked with the entity.
@@ -281,7 +316,7 @@ the name, excluding the middle name(s).
 The Jaccard index is a measure of how similar two sets are to each other.
 This is useful in a whole host of applications \cite{general}, as you might imagine. 
 In this application, using the Jaccard index on fragments of strings yields a very
-robust string comparrison function.
+robust string comparison function.
 
 Let $A$ and $B$ be sets or multisets, then the Jaccard index $J(A,B)$ is defined \cite{mining, comparison}:
 \begin{align*}
@@ -299,16 +334,17 @@ $\{\text{'ana'}, \text{'nab'}, \text{'aba'}, \text{'bas'}, \text{'asi'}, \text{'
 In this application, n-grams were constructed to include imaginary pre and post string characters
 (represented here as '\^{}' and '\$' respectively). So, for instance, the 3-grams of 'cat' are then
 $\{\text{'\^{}\^{}c'}, \text{'\^{}ca'}, \text{'cat'}, \text{'at\$'}, \text{'t\$\$'}\}$. This gives
-significance to the begining and end of a string when using the Jaccard index with the n-grams.
+significance to the beginning and end of a string when using the Jaccard index with the n-grams.
 
 For a distance function, one can use:
 \[d(s_1,s_2) = 1-J(ngrams(s_1),ngrams(s_2))\]
-This doesn't produce a true metric space for the strings
-(since two different strings can have exactly the same n-grams), but it does satisfy
+The Jaccard distance metric is a true metric space for ngrams \cite{data_mining}.
+But it doesn't quite produce a true metric space for string
+(since two different strings can have exactly the same n-grams). Still, it does satisfy
 the triangle inequality \cite{general} and is always non-negative. As such, one could
-concievably construct an M-tree \cite{mtree} to improve lookup speed. That hasn't been necessary
-in this research, but then again, this domain might be smaller than one might experience in
-practice.
+conceivably construct an M-tree \cite{mtree} to improve look-up speed. 
+That hasn't been necessary in this research, but then again, this domain might be smaller
+than one might experience in practice.
 
 \subsubsection{Comparison with Levenshtein (Edit) Distance}
 Levenshtein distance (also known as 'edit distance') is a more common fuzzy string comparison algorithm
@@ -317,7 +353,7 @@ Its ubiquity might be due to a simple happenstance: the algorithm for calculatin
 a favorite example in algorithm design courses for demonstrating dynamic programming.
 But it's popularity is by no means a guarantee that it is the best choice, as I'll demonstrate.
 
-Levenshtein distance is define as \cite{levenshtein} the minimum number of 'edits' 
+Levenshtein distance is defined as \cite{levenshtein} the minimum number of 'edits' 
 (additions, deletions, or swaps) that must occur before one string matches another.
 But these are only single-character edits, and so the algorithm doesn't handle large displacements
 of parts of the name with any sort of grace.
@@ -326,19 +362,19 @@ This is best demonstrated by example; see figure \ref{fig:lev_comp}.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.9\textwidth,natwidth=1,natheight=1]{imgs/levenshtein_comp.png}
-    \caption{Bad Levenstein Name Matching}
+    \caption{Bad Levenshtein Name Matching}
     \label{fig:lev_comp}
 \end{figure}
 
-Using levenshtein distance to match 'closest' strings, word 
+Using Levenshtein distance to match 'closest' strings, word 
 inversions would be considered bulk deletions and insertions. 
-The Jaccard index handels this better because inverting whole words 
+The Jaccard index handles this better because inverting whole words 
 still preserves the ngrams within those words even if it breaks
 the joining ngrams between the words.
 
-Admitedly, the Jaccard index is less forgiving of small typos. 
+Admittedly, the Jaccard index is less forgiving of small typos. 
 A single character edit breaks $n$ n-grams. So, for short single
-word names, levenshtein distance is probably the prefered metric.
+word names, Levenshtein distance is probably the preferred metric.
 
 \subsubsection{Information Content Sensitive Jaccard Index}
 The Jaccard index by itself is a fairly good way to compare names.
@@ -350,7 +386,7 @@ on their Jaccard index, but any reasonable person would pick
 such a common surname.
 
 In more technical terms, the part of the string "Smith"
-should recieve less 'weight' in the comparison function because
+should receive less 'weight' in the comparison function because
 it conveys less information. 
 
 Consider the more general form of the Jaccard index \cite{general}:
@@ -359,7 +395,7 @@ J(\vec{x},\vec{y}) =
 \frac{\sum_i \min(x_i, y_i)}{\sum_i \max(x_i, y_i)}
 \end{align*}
 Where $\vec{x}$ and $\vec{y}$ are large dimensional vectors rather 
-than sets. To help relate it back to the origional form, 
+than sets. To help relate it back to the original form, 
 imagine that $\vec{x}$ and $\vec{y}$ are lists
 of counts of all the possible things that could be in the two sets
 (or multisets) $A$ and $B$.
@@ -370,10 +406,10 @@ e_i \in \{A \cup B \}
 
 Now if we want to consider the amount of information each little
 portion of the string contains, we can calculate it
-using the equation layed down by Shannon \cite{shannon}.
+using the equation laid down by Shannon \cite{shannon}.
 Namely, that the self information of an event is the log of the
-inverse of the probability that event occuring. In this case,
-the 'event' is the occurence of a certain n-gram in the string.
+inverse of the probability that event occurring. In this case,
+the 'event' is the occurrence of a certain n-gram in the string.
 
 \begin{align*}
 I(e_i) &= \log\left(\frac{1}{P(e_i)}\right)\\
@@ -383,8 +419,8 @@ I(e_i) &= \log\left(\frac{1}{P(e_i)}\right)\\
 To determine this probability, we can look at the frequency
 of the n-gram in a large sample set of names.
 We need to index those names anyways, as part of the named entity
-recognition proces. With a large set, we can get pretty close to a true 
-approximation of the probability of an n-gram occuring in 
+recognition process. With a large set, we can get pretty close to a true 
+approximation of the probability of an n-gram occurring in 
 a general population of those names:
 
 \begin{align*}
@@ -393,11 +429,17 @@ P(e_i) \approx \frac{count(e_i; N)+1}{|N|+2}
 
 Where $N$ is the multiset containing the union of all the n-grams of
 all the names. 
-Then, we can weight the vectors $x$ and $y$ such that we have
-an information sensitive comparision function: $\hat{J}(x,y)$:
+Then, we can weigh the vectors $x$ and $y$ such that we have
+an information sensitive comparison function: $\hat{J}(x,y)$:
 
 \begin{align*}
-\hat{J}(\vec{x},\vec{y}) &= \frac{
+\hat{J}(\vec{x},\vec{y}) 
+&= \frac{
+    \sum_i I(e_i)\min(x_i, y_i)
+}{
+    \sum_i I(e_i)\max(x_i, y_i)
+}\\
+&= \frac{
     \sum_i \min(x_iI(e_i), y_iI(e_i))
 }{
     \sum_i \max(x_iI(e_i), y_iI(e_i))
@@ -413,7 +455,7 @@ an information sensitive comparision function: $\hat{J}(x,y)$:
     \label{fig:lev_comp}
 \end{figure}
 
-The above example shows this comparison in action. In the top comparision,
+The above example shows this comparison in action. In the top comparison,
 without considering information content, the closest pair of names is
 "tom smith" and "john smith". But after indexing the sample names, we
 can calculate comparisons that do consider the information content. Then
@@ -421,10 +463,10 @@ we can see that the closer names are "tom smith" and "tom".
 
 \subsection{Ambiguity}
 What should the system do when the user inputs a name which is close
-to the names of several entities by the chosen name comparision
+to the names of several entities by the chosen name comparison
 function? The easiest solution would be to simply ask the user which
 of the possible entities they meant. But this isn't always a great
-solution; what if you're asking about a cornicopia of names?
+solution; what if you're asking about a cornucopia of names?
 Sure, it might be out of scope for this particular system to
 resolve questions such as "Which of the actors in 'my\_data\_file.txt'
 have been in movies together?" But that's certainly within the
@@ -432,13 +474,13 @@ realm of possibilities for some future work.
 
 One approach to this problem would be to create a separate
 system for distinguishing the "right" name from a small(er) selection
-of possible candidates. The aformentioned Jaccard index (or similar
+of possible candidates. The aforementioned Jaccard index (or similar
 distance metric) might be used to narrow down the problem space
-to something managable, then a much more sophisticated (yet slower)
+to something manageable, then a much more sophisticated (yet slower)
 system could choose the right name from the smaller set.
 
 Since there are a number of string comparison algorithms, one could
-(if time permited) implement several of them and use a combigned
+(if time permitted) implement several of them and use a combined
 metric to evaluate the names for fitness. For example,
 a feed-forward neural net could be trained to recognize the 'right'
 name based on a number of factors:
@@ -446,7 +488,7 @@ name based on a number of factors:
 \item String comparison functions (Jaccard, Levenshtein, etc.)
 \item The self-information \cite{shannon} of the input and potential match names
 \item The closeness of other potential match names
-\item The prevelance of the potential match entity in the RDF data
+\item The prevalence of the potential match entity in the RDF data
 \item The frequency of queries involving the potential match entity
 \item Etc.
 \end{itemize}
@@ -455,17 +497,17 @@ name based on a number of factors:
 Historically, top-down parsers were been coded manually or else generated from 
 a context free grammar specification. \cite{lewis, formal_langs} 
 Coding a RDP manually is tedious, error prone, and difficult to maintain.
-Programatically generating a top-down parser from a grammar
+Programmatically generating a top-down parser from a grammar
 still isn't ideal - converting a context free grammar into
 a top-down parsable form may not preserve the {\em strong equivalence} of the grammar.
 And as a result, parse trees generated by that RDP will not be in the same form
 as they might appear in the initial (non-RD-parsable) grammar, which is often a more 
 natural representation of the desired language \cite{compiler}.
 
-In this work, we hope to describe a useful adaptation to top-down parseing
+In this work, we hope to describe a useful adaptation to top-down parsing
 which addresses these problems. Our system compiles a context free grammar 
-specification into a top-down parseable grammar.
-A parser is generated from the top-down parseable gramar,
+specification into a top-down parsable grammar.
+A parser is generated from the top-down parsable grammar,
 and used to parse a input streams. 
 The resulting parse trees are then transformed back into equivalent
 parse trees under the original grammar. (Figure \ref{fig:high_level_parse})
@@ -479,7 +521,7 @@ The 'recursive descent' name comes from the way that a RDP traverses through a
 syntax diagram of a context free grammar \cite{compiler}.
 
 Recursive decent is just one form of top down parsing. The top-down parsing in this thesis
-does not use sytax diagrams (in hindsight, this was a questionable design choice, 
+does not use syntax diagrams (in hindsight, this was a questionable design choice, 
 but such is life). This section will describe how top-down parsing works without
 using syntax diagrams.
 
@@ -576,9 +618,9 @@ The depth of each node in the PT tree corresponds with the number of production 
 \subsection{Effect of Grammar Transformations on Parse Trees}
 Left recursion is a problem for top-down parsers because it may cause them to
 go into an infinite loop. Using the model described in section \ref{rd_wo_sd}:
-when a PT node is reach where the first non-terminal symbol has a production rule with
-left recursion, it's child node will have the same non-terminal symbol so it will produce
-a child node with the same non-terinal symbol ad infinitum - and none of those children will
+when a PT node is reach where the first nonterminal symbol has a production rule with
+left recursion, it's child node will have the same nonterminal symbol so it will produce
+a child node with the same nonterminal symbol ad infinitum - and none of those children will
 consume any terminals from the input stream so the parser will not proceed. 
 
 So, removing left recursion from context free grammars is a necessary evil for top-down parsing.
@@ -592,7 +634,7 @@ These sections will describe how these transformations work on the grammar
 and on their parse trees.
 
 \subsubsection{Direct Left Recursion Elimination}
-A left recursive grammar, $G$, has rules for some non-terminal $A$ of the form
+A left recursive grammar, $G$, has rules for some nonterminal $A$ of the form
 $A \rightarrow A \alpha_i$ and $A \rightarrow \beta_j$, $i \in [1,m]$, $j \in [1,n]$.
 Let $R_\alpha$ and $R_\beta$ represent the sets of those rules respectively where the notation
 $R_\alpha(1)$ represents $A \rightarrow A \alpha_1$. 
@@ -629,7 +671,7 @@ More formally, for each $A$ node in the RD-parsable grammar, the inverse transfo
 modifies chains of $A/A'$ nodes where the children of the $A$ node are $C_A$, of all but the last $A'_{x_p}$ node are $C_{A'_{x p}}$,
 and the last $A'_\epsilon$ node has only the child $\epsilon$.
 From the $DLRE$ transformation rules we know that the $C_A$ will be of the form $\beta_y A'_{x_1}$. 
-We can also conclude from the $DLRE$ tranformation that each $C_{A'_{x p}}$ will be of the form $\alpha_p A'_{x_{p+1}}$
+We can also conclude from the $DLRE$ transformation that each $C_{A'_{x p}}$ will be of the form $\alpha_p A'_{x_{p+1}}$
 when $p < k$ and $A'_\epsilon$ when $p=k$. 
 
 The inverse transformation first removes the $A'_\epsilon$ node. Then it changes each remaining $A'_{x_p}$ node into an $A_{x_p}$ node
@@ -646,9 +688,9 @@ TODO
 \subsection{Compiling a Context Free Grammar for RD Parsing}
 
 It is important to notice that not all context free grammars can be directly parsed by a
-top-down parser. Some context free grammars require a bit of maniuplation to remove
+top-down parser. Some context free grammars require a bit of manipulation to remove
 left recursion (direct or otherwise) \cite{compiler}. This process of converting a context
-free grammar into a {\em weakly equivalent} top-down parsable grammar shall be refered to as
+free grammar into a {\em weakly equivalent} top-down parsable grammar shall be referred to as
 {\em compiling} the grammar.
 
 In this section, a grammar will be define from an ordered collection of production rules.
@@ -665,7 +707,7 @@ there exists a mapping for any decision list in a compiled grammar
 back into a same-terminal-producing decision list in the pre-compiled (parent) grammar.
 My parser keeps track of these inverse transformation rules as performs
 it's compilation procedure so that a compiled grammar's decision list can be easily
-converted to the initial grammar's equavalent decision list. 
+converted to the initial grammar's equivalent decision list. 
 
 Take this simple grammar for example:
 \setcounter{equation}{0}
@@ -709,7 +751,7 @@ into the parent-grammar-equivalent decision list: $[1, 2, 5, 1, 2, 4, 4]$.
 \begin{itemize}
 \item \textbf{Grammar}: a phrase-structure grammar is defined by a finite vocabulary (alphabet), a finite set of
 initial strings, and a finite set of rules... \cite{chomsky} (see Production Rule)
-\item \textbf{Context-Free Grammar}: a context free grammar is one which only has production rules whose head is a single non-terminal symbol.
+\item \textbf{Context-Free Grammar}: a context free grammar is one which only has production rules whose head is a single nonterminal symbol.
 \cite{compiler, anatomy, formal_langs}
 \item \textbf{Production, Production Rule, Rewrite Rule}: rules of the form $X \rightarrow Y$ where
 $X$ and $Y$ are strings in [a grammar]  \cite{chomsky};
@@ -718,13 +760,13 @@ rules which specify how nonterminal symbols may be expanded into new sequences o
 \item \textbf{Head (Production Rule)}: the left hand side of a production rule
 \item \textbf{Tail (Production Rule)}: the right hand side of a production rule
 \item \textbf{Parse Tree}: an ordered, rooted tree whose nodes are symbols in a context-free grammar where the 
-children of each brach node correspond to the tail of some production rule in said grammar;
+children of each branch node correspond to the tail of some production rule in said grammar;
 a tree-representation of the grammatical structure of [an input stream] \cite{anatomy}
 \item \textbf{Weakly Equivalent (Grammar)}: two grammars are [weakly] equivalent if they define the same language.\cite{reghizzi}
 \item \textbf{Strongly/Structurally Equivalent (Grammar)}: two grammars are strongly or structurally equivalent
 if they are weakly equivalent and can assign any sentence the same parse tree. \cite{reghizzi}
 \end{itemize}
 
-\bibliography{arch}{}
+\bibliography{thesis}{}
 \bibliographystyle{plain}
 \end{document}
