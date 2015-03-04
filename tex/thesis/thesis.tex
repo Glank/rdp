@@ -13,12 +13,12 @@
 \begin{document}
 
 \title{Querying the Semantic Web with Natural Language}
-\author{Ernest Kirstein and Richard Scherl}
+\author{Ernest Kirstein}
 \maketitle
 
 \tableofcontents
 
-\section{A Brief Introduction to the Semantic Web}
+\section{Introduction}
 The semantic web (as envisioned by Tim Berners-Lee et al.) is an extension of
 the internet which provides more structure to the vast chaos of data on the
 net. The goal has always been for the semantic web to become
@@ -32,10 +32,12 @@ They can also document relations between objects hierarchically or compositional
 RDF documents are quite expressive, in and of themselves. 
 
 Then there are OWL ontologies which are RDF documents for describing relations
-between RDF entities\cite{owl}. OWL is more technically specified in such a
-way that it allows for further automated reasoning
+between RDF entities\cite{owl}. OWL is more technically specified so as to
+aid in further automated reasoning
 over RDF data stores. RDF may make the semantic web expressive, but OWL
 allows it to be intelligent.
+
+\subsection{Purpose}
 
 To unlock the power behind the semantic web, there needs to be a way for people
 to interface with it and ask questions about stored (or reasoned) information. 
@@ -50,7 +52,8 @@ by allowing users to ask questions in natural language. That is, plain English.
 The actual implementation of this tool handles only a small range of questions,
 but it does demonstrate promising possibilities.
 
-\subsection{DBPedia}
+\subsection{Domain}
+
 The website DBPedia\cite{dbpedia,dbpedia-swj} is a RDF data store containing information 
 which has been curated from Wikipedia. It is a massive collection of structured data
 containing over four million ontology-classified objects in over one hundred different
@@ -78,6 +81,52 @@ Figure \ref{fig:book_ontology} shows a small portion of the DBPedia ontology tha
 will be used in this work. The RDFS labels of each class are what plug into the
 natural language parser to recognize the names of books, authors, and genres. 
 The classes are related by DBPedia's own property predicates.
+
+\section{Previous Work}
+
+Natural language interfaces are useful. 
+Casual users of the semantic web have needs that require a more precise interface
+than the common keyword-based search engines of the early web. But they also
+need a less riggorous tool than a formal query language. \cite{usability}
+
+\subsection{Other NLIs}
+Some systems have already been implemented. \cite{freya, nlp-reduce, galitsky2}
+
+NLP-Reduce \cite{usability,nlp-reduce} is a highly portable system which supports full
+natural language questions, fragment questions, and keyword questions.
+It leverages relationships between semantic classes while deliberately avoiding
+``complex linguistic and semantic technologies" \cite{nlp-reduce}.
+Querix \cite{querix} is a more restricted NLI by some of the same developers as
+NLP-Reduce. It only handels specific question beginings and specific question forms. 
+This interface is more limited but was shown to be prefered buy casual 
+users\cite{usability}.
+
+Another earlier system by Glaitsky\cite{galitsky2} focused more on the logical complexity
+of some questions. His proposed approach used `semantic headers' to reason out
+complex questions that involved making `commonsense' deductions.
+
+FREyA \cite{freya}, was a system which focused on the portability problem of most
+NLIs. This system applied Stanford's part-of-speach parser and custom heuristic algorithms
+to classify groups of words into potential ontoloy concepts. Comparing an OWL ontology
+with the potential ontology concepts of the heuristic output, they were able to generate
+SPARQL queries. The system even applied some machine learning techniques in the 
+heuristic algorithm to achieve marginal improvements to question recognition and SPARQL
+generation. 
+
+\subsection{Common Issues}
+There are some problems with complexity. \cite{issues}
+
+Linguistic variability and ambiguity make building such a
+system a highly complicated and time consuming task. Also,
+domain-restricted NLIs are difficult to adapt and port:
+there is a tradeoff between retrieval performance and portability. 
+Still, the meta-data of the semantic web provices assistance
+which can potentially overcome some of these problems. \cite{usability}
+
+Expressive interfaces, even in natural language, can be overwhelming.
+As such, even NLIs require some user support and training (though much less than
+a formal query language would). \cite{usability}
+
 
 \section{Converting Natural Language Questions into \\SPARQL Queries}
 Since SPARQL is already a well-worn tool for navigating the semantic
@@ -514,7 +563,7 @@ parse trees under the original grammar. (Figure \ref{fig:high_level_parse})
 
 \subsection{Introduction to Top-Down Parsing without Syntax Diagrams}
 \label{rd_wo_sd}
-Introductory material by Dr. Lewis \cite{lewis} describes a recursive-descent parser 
+Introductory material by Dr. Lewis \cite{lewis} describes a recursive-descent parser (a type of top-down parser)
 as a piece of software which takes a sentence and turns it into a parse tree by performing a 'depth-first' search. 
 But a search of what? One might try to call it a search of the parse tree, but that's not exactly right.
 The 'recursive descent' name comes from the way that a RDP traverses through a
@@ -685,7 +734,7 @@ TODO
 
 \clearpage
 
-\subsection{Compiling a Context Free Grammar for RD Parsing}
+\subsection{Compiling a Context Free Grammar for Top Down Parsing}
 
 It is important to notice that not all context free grammars can be directly parsed by a
 top-down parser. Some context free grammars require a bit of manipulation to remove
@@ -693,7 +742,7 @@ left recursion (direct or otherwise) \cite{compiler}. This process of converting
 free grammar into a {\em weakly equivalent} top-down parsable grammar shall be referred to as
 {\em compiling} the grammar.
 
-In this section, a grammar will be define from an ordered collection of production rules.
+A grammar is formally defined from an ordered collection of production rules.
 My parser uses context-free grammar rules, which are comprised of a
 'head' (the single-symbol left hand side of the production rule), and a 'tail'
 (one or more symbols comprising the right hand side of the production rule).
