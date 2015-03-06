@@ -15,14 +15,36 @@
 \title{Querying the Semantic Web with Natural Language}
 \author{Ernest Kirstein}
 \maketitle
+\clearpage
 
 \tableofcontents
+\clearpage
 
 \section{Introduction}
 The semantic web (as envisioned by Tim Berners-Lee et al.) is an extension of
 the internet which provides more structure to the vast chaos of data on the
 net. The goal has always been for the semantic web to become
-a means for AI agents to share information and reasoning \cite{semantic}.
+a means for artificially intelligent agents to share information and reasoning \cite{semantic}.
+Unfortunately for us humans, the semantic web has proven rather difficult for
+casual users to interact with.
+
+\subsection{Purpose}
+
+To unlock the power behind the semantic web, there needs to be a way for people
+to interface with it and ask questions about stored (or reasoned) information. 
+One of the main interfaces is called SPARQL. 
+SPARQL is a query language that is used to ask questions about semantic
+data \cite{sparql}. The main benefit to this type of interface is that it allows users to 
+ask complex, exact questions. The main drawback, being a formal query language, is that
+SPARQL has a steep learning curve and is only accessible to expert users.
+
+The system we propose in this work attempts to make the semantic web more accessible
+by allowing users to ask questions in natural language (i.e. plain English).
+The actual implementation of this tool handles only a small range of questions,
+but it does demonstrate promising possibilities.
+
+\subsection{Domain}
+
 The world wide web has it's foundation in HTML/CSS/JS documents and HTTP requests.
 Similarly, the semantic web is rooted in RDF/OWL documents and SPARQL queries.
 
@@ -36,23 +58,6 @@ between RDF entities\cite{owl}. OWL is more technically specified so as to
 aid in further automated reasoning
 over RDF data stores. RDF may make the semantic web expressive, but OWL
 allows it to be intelligent.
-
-\subsection{Purpose}
-
-To unlock the power behind the semantic web, there needs to be a way for people
-to interface with it and ask questions about stored (or reasoned) information. 
-One of the main interfaces is called SPARQL. 
-SPARQL is a query language that is used to ask questions about semantic
-data \cite{sparql}. The main benefit to this type of interface is that it allows users to ask
-complex, exact questions. The main drawback is that, being a formal query language,
-SPARQL has a steep learning curve and is only accessible to expert users.
-
-The system I propose in this work attempts to make the semantic web more accessible
-by allowing users to ask questions in natural language. That is, plain English.
-The actual implementation of this tool handles only a small range of questions,
-but it does demonstrate promising possibilities.
-
-\subsection{Domain}
 
 The website DBPedia\cite{dbpedia,dbpedia-swj} is a RDF data store containing information 
 which has been curated from Wikipedia. It is a massive collection of structured data
@@ -68,7 +73,9 @@ the data's naturally unbounded scope, even if the system itself is more constrai
 DBPedia has its own ontology and ways of relating objects to one another. This means
 that, although the general principals involved would be the same, 
 it may be more difficult to create an interface for another data set than simply 
-replacing the URIs from DBPedia with another database's URIs.
+replacing the URIs from DBPedia with another database's URIs. This `portability problem'
+is an issue that is an area of active research\cite{issues, usability}, 
+but is not a key focus of this work.
 
 \begin{figure}[h!]
     \centering
@@ -84,96 +91,115 @@ The classes are related by DBPedia's own property predicates.
 
 \section{Previous Work}
 
-Natural language interfaces are useful. 
+Work by Kaufmann and Bernstein \cite{usability} indicates
+that users have a “clear preference” for even limited natural language interfaces
+when compared to keyword or query language interfaces.
 Casual users of the semantic web have needs that require a more precise interface
 than the common keyword-based search engines of the early web. But they also
-need a less riggorous tool than a formal query language. \cite{usability}
+need a less rigorous tool than a formal query language. \cite{usability}
+
+Other recent works \cite{mapping, freya, galitsky, nlp-reduce, galitsky2, querix}
+have shown that simple natural language questions can be translated based
+on known sentence structure or leveraging named-entity recognition, NER.
 
 \subsection{Other NLIs}
-Some systems have already been implemented. \cite{freya, nlp-reduce, galitsky2}
+Many natural language interfaces, NLIs, have been developed since they gained traction
+in the 70s\cite{usability}. This section will discuss a few of the more recent ones.
 
-NLP-Reduce \cite{usability,nlp-reduce} is a highly portable system which supports full
+NLP-Reduce\cite{usability,nlp-reduce} is a highly portable system which supports full
 natural language questions, fragment questions, and keyword questions.
 It leverages relationships between semantic classes while deliberately avoiding
-``complex linguistic and semantic technologies" \cite{nlp-reduce}.
-Querix \cite{querix} is a more restricted NLI by some of the same developers as
-NLP-Reduce. It only handels specific question beginings and specific question forms. 
-This interface is more limited but was shown to be prefered buy casual 
+``complex linguistic and semantic technologies"\cite{nlp-reduce}.
+Querix\cite{querix} is a more restricted NLI by some of the same developers as
+NLP-Reduce. It only handles specific question beginnings and specific question forms. 
+This interface is more limited but was shown to be preferred buy casual 
 users\cite{usability}.
 
 Another earlier system by Glaitsky\cite{galitsky2} focused more on the logical complexity
 of some questions. His proposed approach used `semantic headers' to reason out
 complex questions that involved making `commonsense' deductions.
 
-FREyA \cite{freya}, was a system which focused on the portability problem of most
-NLIs. This system applied Stanford's part-of-speach parser and custom heuristic algorithms
-to classify groups of words into potential ontoloy concepts. Comparing an OWL ontology
+FREyA\cite{freya} is a system which focused on the portability problem of most
+NLIs. This system applied Stanford's part-of-speech parser and custom heuristic algorithms
+to classify groups of words into potential ontology concepts. Comparing an OWL ontology
 with the potential ontology concepts of the heuristic output, they were able to generate
 SPARQL queries. The system even applied some machine learning techniques in the 
 heuristic algorithm to achieve marginal improvements to question recognition and SPARQL
 generation. 
 
 \subsection{Common Issues}
-There are some problems with complexity. \cite{issues}
-
-Linguistic variability and ambiguity make building such a
-system a highly complicated and time consuming task. Also,
-domain-restricted NLIs are difficult to adapt and port:
-there is a tradeoff between retrieval performance and portability. 
-Still, the meta-data of the semantic web provices assistance
-which can potentially overcome some of these problems. \cite{usability}
-
-Expressive interfaces, even in natural language, can be overwhelming.
-As such, even NLIs require some user support and training (though much less than
-a formal query language would). \cite{usability}
-
-
-\section{Converting Natural Language Questions into \\SPARQL Queries}
-Since SPARQL is already a well-worn tool for navigating the semantic
-web, it make sense to leverage it. This system we have built receives natural language
-questions such as, ``What author has written both high fantasy and science fiction?"
-Then the system produces a SPARQL query which asks the same question. 
-The end goal is to allow general users to achieve the same level of sophistication
-as expert users using English rather than SPARQL.
-
-Work by Kaufmann and Bernstein \cite{usability} indicates
-that users have a “clear preference” for even limited natural language interfaces
-when compared to keyword or query language interfaces.
-Other recent works \cite{mapping, freya, galitsky}
-have shown that simple natural language questions can be translated based
-on known sentence structure using (among other things) NER, named-entity recognition.
-
-These systems are limited - they generally only handle simple, direct questions.
 A recent publication by Sharef et al. \cite{issues} outlines obstacles in developing full
 natural language interfaces for the semantic web. That paper notes a particular
 difficulty with parsing what we call `multifaceted' questions - questions with multiple
 variables, constraints, or operations. This is the precise gap which this work
 attempts to bridge.
 
+NLIs for the semantic web will also eventually need to deal with multiple sources
+and unmitigated ontologies that need to be unified to have truly global search
+capabilities\cite{issues}. This might even include issues of trusting information
+sources\cite{semantic}.
+
+Linguistic variability and ambiguity make building such a
+system a highly complicated and time consuming task. Also,
+domain-restricted NLIs are difficult to adapt and port:
+there is a trade off between retrieval performance and portability. 
+Still, the meta-data of the semantic web provides assistance
+which can potentially overcome some of these problems. \cite{usability}
+
+Expressive interfaces, even in natural language, can be overwhelming.
+As such, even NLIs require some user support and training (though much less than
+a formal query language would). \cite{usability}
+
+\section{Converting Natural Language Questions into \\SPARQL Queries}
+Since SPARQL is already a well-worn tool for navigating the semantic
+web, it make sense to make use of it. This system we have built receives natural language
+questions such as, ``What author has written both high fantasy and science fiction?"
+Then the system produces a SPARQL query which asks the same question. 
+The end goal is to allow general users to achieve the same level of sophistication
+as expert users using English rather than SPARQL.
+
 The foundations of both compiler design and natural language processing
 have significant overlap \cite{chomsky, reghizzi}.
-However, in practice, there has not been
-much synergy between the two disciplines \cite{aho, anatomy, reghizzi}.
-I believe cooperation between these estranged fields is necessary to move forward
-in either.
+However, in practice, the two different disciplines often take very different approaches to 
+problems\cite{aho, anatomy, reghizzi}.
+Some think \cite{usability} that a middle ground between these estranged fields is where
+NLIs will be grown successfully.
 
 Our approach was be to build a ``natural language compiler" of sorts.
 That is, to approach the problem of converting natural language questions into
 SPARQL queries just as one might convert Java source code into byte code.
-The problems are, or course, an order of magnitude apart in complexity.
-So our only aim was only to parse a limited range of natural language questions.
+The problems are several orders of magnitude apart in complexity, so 
+our only expected goal was only to parse a limited range of natural language questions.
 But in that range of questions, we intend to show that multifaceted questions
 can be handled on a limited basis.
 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth,natwidth=1,natheight=1]{umlet/usage.pdf}
+    \caption{An overview of the NL to SPARQL Process}
+    \label{fig:process}
+\end{figure}
+
+Figure \ref{fig:process} shows a brief outline of the full process. Questions come
+in the form of natural language questions and are fed into a parser. The parser is
+informed by the named entity recognizer which provides recognition of nouns, adjectives,
+or verbs whose names must be scraped from the RDF database. The parse tree (the output
+of the parser) then goes through a name/URI resolution process which matches the
+natural language names to their corresponding RDF URIs. Finally, the resolved parse
+tree goes into a SPARQL-generating process which outputs a query.
+
 \subsection{Named Entity Recognition}
-Different classes of named objects are recognized as part of the parsing process.
-Since the names are matched during parsing, the NER is greatly improved by context.
-Still, this matching requires a bit of preprocessing.
+Natural language names of `named objects' are recognized by a component of the system
+called the `named entity recognizer' \cite{ner1,ner2}. 
+The NER is greatly improved by context from being integrated into the parsing process.
+Still, setting up the NER for a higher level of accuracy requires a bit of preprocessing.
 
 Statistical character models are constructed from the output of queries for all 
 objects of a certain type in the target RDF database. 
 These models are used to recognize arbitrary tokens (or combinations of 
-tokens) within the parser's grammar. 
+tokens) within the parser's grammar. Generally, we have found that it was sufficient
+to simply pull the RDFS label for all the objects of a class to use as the data
+set for recognizing the names.
 
 These models allow for probabilistic recognition of the input strings in 
 $O(1)$ time (in relation to the number of objects in the RDF
@@ -184,17 +210,19 @@ Furthermore, these models allow for $O(1)$
 approximation of their 'probability' within the set of all the names of instances
 of that class. This is important for determining which interpretation of a
 question is the correct one: we can generally assume that the most probable
-interpretation is the correct one.
+interpretation is the correct one. Exceptions of that rule are where there exist
+logical ambiguities rather than semantic ones (``How big is New York?" is a common example
+of an ambiguous question - which New York and how is `big' defined?).
 
 \subsection{Parsing}
 
 This system uses a custom parser which has been implemented especially for
 this project. One of the contributions of this work is the unique implementation
 of this parser. The parser automatically handles left recursion and a few other
-hiccups which usually give top-down parsers trouble. However, the parse trees
-(which the parser outputs) retain the original structure of the initial grammar.
+hiccups which usually give top-down parsers trouble. However, the parser outputs
+parse trees under the original structure of the input grammar.
 This is accomplished by reversing the transformation required to remove left
-recursion (etc.).
+recursion (etc.) using the algorithms described in section \ref{gram_transforms}.
 
 \begin{figure}[h!]
     \centering
@@ -293,13 +321,6 @@ interdependent process with many overlapping concerns. For instance,
 parsing seems to be an independent problem from named entity recognition (NER),
 but to achieve better parsing results it was necessary to integrate NER into the
 parser so that semantic context could inform the NER. 
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.5\textwidth,natwidth=1,natheight=1]{umlet/usage.pdf}
-    \caption{Process}
-    \label{fig:process}
-\end{figure}
 
 Another design concern was the accessibility of the SPARQL endpoint.
 It would be ideal if the endpoint was always accessible, would accept an unlimited
@@ -664,76 +685,6 @@ The depth of each node in the PT tree corresponds with the number of production 
 
 \clearpage
 
-\subsection{Effect of Grammar Transformations on Parse Trees}
-Left recursion is a problem for top-down parsers because it may cause them to
-go into an infinite loop. Using the model described in section \ref{rd_wo_sd}:
-when a PT node is reach where the first nonterminal symbol has a production rule with
-left recursion, it's child node will have the same nonterminal symbol so it will produce
-a child node with the same nonterminal symbol ad infinitum - and none of those children will
-consume any terminals from the input stream so the parser will not proceed. 
-
-So, removing left recursion from context free grammars is a necessary evil for top-down parsing.
-It just takes two transformations to turn any context free grammar with left recursion
-into a {\em weakly equivalent} grammar with only right recursion.
-These two transformations are direct left recursion elimination, 
-$DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ and substitution, 
-$Sub(G; r_\alpha, R_\beta) \rightarrow G'$, which is used to
-remove indirect left recursion. \cite{aho, lewis}
-These sections will describe how these transformations work on the grammar
-and on their parse trees.
-
-\subsubsection{Direct Left Recursion Elimination}
-A left recursive grammar, $G$, has rules for some nonterminal $A$ of the form
-$A \rightarrow A \alpha_i$ and $A \rightarrow \beta_j$, $i \in [1,m]$, $j \in [1,n]$.
-Let $R_\alpha$ and $R_\beta$ represent the sets of those rules respectively where the notation
-$R_\alpha(1)$ represents $A \rightarrow A \alpha_1$. 
-Such a grammar represents a language which contains strings of the form
-$\beta_y \alpha_{x_1} \alpha_{x_2} ... \alpha_{x_p}...\alpha_{x_{k-1}} \alpha_{x_k}$ where $y \in [1,m]$ and each $x_p \in [1,n]$.
-However, to produce such a string, the alpha rules need to be followed in reverse order:
-\[R_\alpha(x_k), R_\alpha(x_{k-1}), ... R_\alpha(x_{p}), ... R_\alpha(x_2), R_\alpha(x_1), R_\beta(y)\]
-
-The transformation \cite{aho} $DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ changes
-each rule in $R_\alpha$ to the form $A' \rightarrow \alpha_i A'$, each rule
-in $R_\beta$ to the form $A \rightarrow \beta_j A'$, and adds an additional rule
-$R_\epsilon = A' \rightarrow \epsilon$. Consequently, the order of the followed production
-rules in $G'$ results in alpha rules being followed in forward order:
-
-\[R_\beta(y), R_\alpha(x_1), R_\alpha(x_2), ... R_\alpha(x_p), ... R_\alpha(x_{k-1}),R_\alpha(x_k), R_\epsilon \]
-
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/dlre_orig.pdf}
-    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/dlre_comp.pdf}
-    \caption{Original and Transformed Parse Trees}
-    \label{fig:dlre}
-\end{figure}
-
-The transformation effects the parse trees by flipping and reversing $A$ chains,
-replacing lower $A$ nodes with $A'$ nodes, moving the $\beta$ up,
-and adding an $A'$ node and $\epsilon$ node to the end of the chain. (Figure \ref{fig:dlre}) The inverse transformation
-removes last $A'$ and $\epsilon$ nodes, moves the $\beta$ back down to the end of the chain, and changes the $A'$ nodes back into
-$A$ nodes, then flips and reverses the $A$ chain. Note that the $\alpha$ and $\beta$ nodes are arbitrary strings, so in reality
-they might be multiple nodes which might have any number of children.
-
-More formally, for each $A$ node in the RD-parsable grammar, the inverse transformation $DLRE^{-1}(T'; A, A') \rightarrow T$
-modifies chains of $A/A'$ nodes where the children of the $A$ node are $C_A$, of all but the last $A'_{x_p}$ node are $C_{A'_{x p}}$,
-and the last $A'_\epsilon$ node has only the child $\epsilon$.
-From the $DLRE$ transformation rules we know that the $C_A$ will be of the form $\beta_y A'_{x_1}$. 
-We can also conclude from the $DLRE$ transformation that each $C_{A'_{x p}}$ will be of the form $\alpha_p A'_{x_{p+1}}$
-when $p < k$ and $A'_\epsilon$ when $p=k$. 
-
-The inverse transformation first removes the $A'_\epsilon$ node. Then it changes each remaining $A'_{x_p}$ node into an $A_{x_p}$ node
-with the same children. Next the $A_{x_p}$ are restructured such that each $C_{A_{x p}}$
-is equal to $A_{x_{p-1}} \alpha_p$ where $1 < p$ and $\beta_y \alpha_k$ where $p=1$. The top node of the chain, 
-$A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
-
-\subsubsection{Substitution}
-
-TODO
-
-\clearpage
-
 \subsection{Compiling a Context Free Grammar for Top Down Parsing}
 
 It is important to notice that not all context free grammars can be directly parsed by a
@@ -792,6 +743,124 @@ into the parent-grammar-equivalent decision list: $[1, 2, 5, 1, 2, 4, 4]$.
     \caption{Compiled Grammar Parse Tree (left) Parent Grammar Parse Tree (right)}
     \label{fig:comp_to_dec_ex}
 \end{figure}
+
+\subsection{Effect of Grammar Transformations on Parse Trees}
+\label{gram_transforms}
+Left recursion is a problem for top-down parsers because it may cause them to
+go into an infinite loop. Using the model described in section \ref{rd_wo_sd}:
+when a PT node is reach where the first nonterminal symbol has a production rule with
+left recursion, it's child node will have the same nonterminal symbol so it will produce
+a child node with the same nonterminal symbol ad infinitum - and none of those children will
+consume any terminals from the input stream so the parser will not proceed. 
+
+So, removing left recursion from context free grammars is a necessary evil for top-down parsing.
+It just takes two transformations to turn any context free grammar with left recursion
+into a {\em weakly equivalent} grammar with only right recursion.
+These two transformations are direct left recursion elimination, 
+$DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ and substitution, 
+$SUB(G; R_\alpha, R_\beta) \rightarrow G'$, which is necessary to
+remove indirect left recursion. \cite{aho, lewis}
+These sections will describe how these transformations work on the grammar
+and on their parse trees.
+
+\subsubsection{Substitution}
+
+A grammar, $G$, where substitution can be applied has rules for some nonterminals $A$ and $B$ of the form:
+\begin{align*}
+R_\alpha &= A \rightarrow B \alpha\\
+R_\beta(i) &= B \rightarrow \beta_i
+\end{align*}
+
+Where $i \in [1,m]$. Let $R_\beta$ represent the sets of the $B$ rules where the notation
+$R_\beta(1)$ represents $B \rightarrow \beta_1$. 
+Such a grammar represents a language which contains substrings of the form:
+\[ S = \beta_x \alpha\] 
+With $x \in [1,m]$.
+To produce such a substring, the rules need to be followed in the opposite order:
+\[Prods(S;G) = \{R_\alpha, R_\beta(x)\}\]
+Where $Prods$ is the function which outputs the production rules from $G$ which generate the substring $S$.
+
+The transformation \cite{aho} $SUB(G; R_\alpha, R_\beta) \rightarrow G'$ which applies the substitution
+replaces the single-element $R_\alpha$ rule set with combined rules for each $R_\beta$:
+
+\[ R_\alpha(i)' = A \rightarrow \beta_i \alpha \]
+
+Then, to produce the same substring $S$, just a single new $R_\alpha$ rule is followed. 
+\[Prods(S;G') = \{R_\alpha(x)\}\]
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/sub_orig.pdf}
+    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/sub_comp.pdf}
+    \caption{Original and Transformed Parse Trees}
+    \label{fig:dlre}
+\end{figure}
+
+The transformation just removes the $B$ node in the parse tree (Figure \ref{fig:dlre}).
+So the inverse transformation simply puts the $B$ node back in.
+
+More formally, for each $A$ node in the transform-affected parse tree, the inverse transformation $SUB^{-1}(T'; A, B) \rightarrow T$
+modifies trees rooted at $A$ nodes where the children of the $A$ node are just some $\beta_x$ and $\alpha$.
+The $\beta_x$ node will be replaced with a $B$ node which then just connects back to the $\beta_x$ node.
+
+\subsubsection{Direct Left Recursion Elimination}
+A grammar with direct left recursion, $G$, has rules for some nonterminal $A$ of the form:
+\begin{align*}
+R_\alpha(i) &= A \rightarrow A \alpha_i \\
+R_\beta(j) &= A \rightarrow \beta_j
+\end{align*}
+Where $i \in [1,m]$ and $j \in [1,n]$.
+Let $R_\alpha$ and $R_\beta$ represent the sets of those rules respectively where the notation
+$R_\alpha(1)$ represents $A \rightarrow A \alpha_1$. 
+Such a grammar represents a language which contains substrings of the form:
+\[ S = \beta_y \alpha_{x_1} \alpha_{x_2} ... \alpha_{x_p}...\alpha_{x_{k-1}} \alpha_{x_k}\] 
+where $y \in [1,m]$ and each $x_p \in [1,n]$.
+However, to produce such a substring, the alpha rules need to be followed in reverse order:
+\[Prods(S;G) = \{R_\alpha(x_k), R_\alpha(x_{k-1}), ... R_\alpha(x_{p}), ... R_\alpha(x_2), R_\alpha(x_1), R_\beta(y)\}\]
+Where $Prods$ is the function which outputs the production rules from $G$ which generate the substring $S$.
+
+The transformation \cite{aho} $DLRE(G; R_\alpha, R_\beta) \rightarrow G'$ which achieves Direct
+Left Recursion Elimination transforms each of those $R_\alpha$ and $R_\beta$ rules to corresponding 
+$R_\alpha'$ and $R_\beta'$ rules respectively:
+\begin{align*}
+R_\alpha'(i) &= A' \rightarrow \alpha_i A'\\
+R_\beta'(j) &= A \rightarrow \beta_j A'
+\end{align*}
+and adds an additional rule:
+\[ R_\epsilon = A' \rightarrow \epsilon\]
+
+Consequently, the order of the followed production rules in $G'$ to produce the same substring uses rules in forward order:
+
+\[Prods(S;G') = \{R_\beta'(y), R_\alpha'(x_1), R_\alpha'(x_2), ... R_\alpha'(x_{k-1}), R_\alpha'(x_k), R_\epsilon\}\]
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/dlre_orig.pdf}
+    \includegraphics[width=0.4\textwidth,natwidth=1,natheight=1]{umlet/dlre_comp.pdf}
+    \caption{Original and Transformed Parse Trees}
+    \label{fig:dlre}
+\end{figure}
+
+The transformation effects the parse trees by flipping and reversing $A$ chains,
+replacing lower $A$ nodes with $A'$ nodes, moving the $\beta$ up,
+and adding an $A'$ node and $\epsilon$ node to the end of the chain. (Figure \ref{fig:dlre}) The inverse transformation
+removes last $A'$ and $\epsilon$ nodes, moves the $\beta$ back down to the end of the chain, and changes the $A'$ nodes back into
+$A$ nodes, then flips and reverses the $A$ chain. Note that the $\alpha$ and $\beta$ nodes are arbitrary substrings, so in reality
+they might be multiple nodes which might have any number of children.
+
+More formally, for each $A$ node in the transform-affected parse tree, the inverse transformation $DLRE^{-1}(T'; A, A') \rightarrow T$
+modifies chains of $A/A'$ nodes where the children of the $A$ node are $C_A$, of all but the last $A'_{x_p}$ node are $C_{A'_{x p}}$,
+and the last $A'_\epsilon$ node has only the child $\epsilon$.
+From the $DLRE$ transformation rules we know that the $C_A$ will be of the form $\beta_y A'_{x_1}$. 
+We can also conclude from the $DLRE$ transformation that each $C_{A'_{x p}}$ will be of the form $\alpha_p A'_{x_{p+1}}$
+when $p < k$ and $A'_\epsilon$ when $p=k$. 
+
+The inverse transformation first removes the $A'_\epsilon$ node. Then it changes each remaining $A'_{x_p}$ node into an $A_{x_p}$ node
+with the same children. Next the $A_{x_p}$ are restructured such that each $C_{A_{x p}}$
+is equal to $A_{x_{p-1}} \alpha_p$ where $1 < p$ and $\beta_y \alpha_k$ where $p=1$. The top node of the chain, 
+$A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
+
+
 
 \clearpage
 

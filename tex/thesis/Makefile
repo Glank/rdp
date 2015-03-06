@@ -19,6 +19,8 @@ clean:
 	rm -f thesis.blg
 	rm -f thesis.dvi
 	rm -f thesis.log
-	rm -f thesis.pdf
 	rm -f thesis.toc
 	rm -f thesis.tex.bak
+
+clean_all: clean
+	rm -f thesis.pdf
