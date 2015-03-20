@@ -34,15 +34,17 @@
             }
         }
     ],
-    "question_types":[
-        {
-            "module":"demo.questions",
-            "class":"BibliographyRequest"
-        },
-        {
-            "module":"demo.questions",
-            "class":"AuthorSearch"
-        }
-    ],
+    "questions":{
+        "question_types":[
+            {
+                "module":"demo.questions",
+                "class":"BibliographyRequest"
+            },
+            {
+                "module":"demo.questions",
+                "class":"AuthorSearch"
+            }
+        ]
+    },
     "tokenizer":"SimpleTokenizer"
 }

@@ -42,14 +42,14 @@ def remove_indent(long_str):
 class BibliographyRequest(QuestionType):
     def __init__(self):
         QuestionType.__init__(self, 'bibliography_request')
-    def rule_tails(self, named_entities):
+    def rule_tails(self, context):
         yield [
             what, books, has,
-            named_entities.symbol('author'),
+            context['named_entities'].symbol('author'),
             writen
         ]
-    def get_sparql(self, parse_tree, named_entities):
-        author_symbol = named_entities['author'].symbol()
+    def get_sparql(self, parse_tree, context):
+        author_symbol = context['named_entities']['author'].symbol()
         author = parse_tree.find_node(
             lambda n:n.symbol==author_symbol
         )
@@ -71,7 +71,7 @@ class BibliographyRequest(QuestionType):
 class AuthorSearch(QuestionType):
     def __init__(self):
         QuestionType.__init__(self, 'author_search')
-    def rules(self, root, named_entities):
+    def rules(self, root, context):
         yield Rule(root, [self.symbol()])
         yield Rule(self.symbol(), [who, have_writen, book_description])
         yield Rule(self.symbol(), [which, authors, have_writen, book_description])
@@ -82,10 +82,10 @@ class AuthorSearch(QuestionType):
             book_description, _and, book_description
         ])
         yield Rule(book_description, [genre_description])
-        yield Rule(genre_description, [named_entities['genre'].symbol()])
-        yield Rule(genre_description, [named_entities['genre'].symbol(), books])
-    def get_sparql(self, parse_tree, named_entities):
-        genre_symbol = named_entities['genre'].symbol()
+        yield Rule(genre_description, [context['named_entities']['genre'].symbol()])
+        yield Rule(genre_description, [context['named_entities']['genre'].symbol(), books])
+    def get_sparql(self, parse_tree, context):
+        genre_symbol = context['named_entities']['genre'].symbol()
         genres = []
         for node in parse_tree.iter_nodes():
             if node.symbol==genre_symbol:

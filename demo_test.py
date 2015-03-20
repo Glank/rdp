@@ -1,6 +1,8 @@
 from mike import Mike
 import json
 from rdp import *
+from SPARQLWrapper import SPARQLWrapper, JSON
+from tabulate import tabulate
 
 with open('demo/configs.json', 'r') as f:
     configs = json.load(f)
@@ -8,19 +10,44 @@ mike = Mike(configs)
 mike.build()
 
 print "Grammar:"
-print mike._grammar_()
+grammar = mike._grammar_(verbose=True)
 print
 
-question = 'Which writers have published both high fantasy and science fiction?'
-#question = 'Who done wrote low fantasy?'
+print "Compiled Grammar:"
+print grammar
+print
+
+#question = 'Which writers have published both high fantasy and science fiction?'
+#question = 'What books has Dave Wolverton written?'
+question = 'What books has Stephen King written?'
+#question = 'What books has George RR Martin written?'
 print "Question:"
 print question
 print
 
-sparql = mike.get_sparql(
+query = mike.get_sparql(
      question,
      verbose=True
 )
 
 print "\nSPARQL:"
-print sparql
+print query
+
+print "\nExecute (N/y)?"
+execute = raw_input()
+if execute.lower()!='y':
+    exit()
+
+sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+sparql.setQuery(query)
+sparql.setReturnFormat(JSON)
+results = sparql.query().convert()
+table = []
+for binding in results['results']['bindings']:
+    row = []
+    for var in results['head']['vars']:
+        row.append(binding[var]['value'])
+    table.append(row)
+
+print "\nResults:"
+print tabulate(table, headers=results['head']['vars'])

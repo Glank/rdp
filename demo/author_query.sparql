@@ -2,8 +2,13 @@ PREFIX dbpprop:<http://dbpedia.org/property/>
 PREFIX dbpowl:<http://dbpedia.org/ontology/>
 PREFIX dbpresource:<http://dbpedia.org/resource/>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?entity ?name
+SELECT ?entity ?name (COUNT(?book) as ?books)
 WHERE{
-    ?entity a dbpowl:Writer;
-        rdfs:label ?name.
+    ?book dbpprop:author ?entity.
+    ?entity rdfs:label ?name.
+    FILTER langMatches( lang(?name), "EN" ).
 }
+GROUP BY ?entity ?name ?books
+HAVING (COUNT(?book)>1)
+ORDER BY DESC(?books)
+LIMIT 5000

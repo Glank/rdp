@@ -1,0 +1,25 @@
+\contentsline {section}{\numberline {1}Introduction}{3}
+\contentsline {subsection}{\numberline {1.1}Purpose}{3}
+\contentsline {subsection}{\numberline {1.2}Domain}{3}
+\contentsline {section}{\numberline {2}Previous Work}{5}
+\contentsline {subsection}{\numberline {2.1}Other NLIs}{5}
+\contentsline {subsection}{\numberline {2.2}Common Issues}{6}
+\contentsline {section}{\numberline {3}Converting Natural Language Questions into \\SPARQL Queries}{6}
+\contentsline {subsection}{\numberline {3.1}Named Entity Recognition}{8}
+\contentsline {subsection}{\numberline {3.2}Parsing}{8}
+\contentsline {subsection}{\numberline {3.3}Resolution}{10}
+\contentsline {subsection}{\numberline {3.4}Compilation}{10}
+\contentsline {section}{\numberline {4}Software Architecture}{11}
+\contentsline {subsection}{\numberline {4.1}SPARQL Generation}{13}
+\contentsline {section}{\numberline {5}Resolving User Input Names to RDF Entities}{14}
+\contentsline {subsection}{\numberline {5.1}Name Standardization and Enumeration}{14}
+\contentsline {subsection}{\numberline {5.2}Jaccard Index}{15}
+\contentsline {subsubsection}{\numberline {5.2.1}Comparison with Levenshtein (Edit) Distance}{16}
+\contentsline {subsubsection}{\numberline {5.2.2}Information Content Sensitive Jaccard Index}{16}
+\contentsline {subsection}{\numberline {5.3}Ambiguity}{18}
+\contentsline {section}{\numberline {6}Top-Down Parsing}{19}
+\contentsline {subsection}{\numberline {6.1}Introduction to Top-Down Parsing without Syntax Diagrams}{20}
+\contentsline {subsection}{\numberline {6.2}Compiling a Context Free Grammar for Top Down Parsing}{24}
+\contentsline {subsection}{\numberline {6.3}Effect of Grammar Transformations on Parse Trees}{25}
+\contentsline {subsubsection}{\numberline {6.3.1}Substitution}{26}
+\contentsline {subsubsection}{\numberline {6.3.2}Direct Left Recursion Elimination}{27}

@@ -11,13 +11,13 @@ class Mike:
             self.configs['named_entity_types']
         )
         self.questions = question.QuestionCollection(
-            self.configs['question_types']
+            self.configs['questions']
         )
         self.tokenizer = tokenize.get_tokenizer(self.configs['tokenizer'])
     def build(self, rebuild=False):
         self.names.build(rebuild=rebuild)
-    def _grammar_(self):
-        return self.questions.grammar(self.names)
+    def _grammar_(self, verbose=False):
+        return self.questions.grammar(self.names, verbose=verbose)
     def get_sparql(self, sentence, verbose=False):
         words = self.tokenizer.tokenize(sentence)
         stream = WordStream(words)

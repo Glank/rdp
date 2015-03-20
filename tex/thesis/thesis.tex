@@ -89,6 +89,16 @@ will be used in this work. The RDFS labels of each class are what plug into the
 natural language parser to recognize the names of books, authors, and genres. 
 The classes are related by DBPedia's own property predicates.
 
+Three classes of objects are enough to ask challenging questions but keep the
+scope within range of a research project. We hoped our system would be able to 
+handle questions as complex as:
+\begin{itemize}
+\item What science fiction books has George Martin written?
+\item Which authors have written both science fiction and high fantasy novels?
+\item Which books has Dave Wolverton written that are the same genre as Eragon by Paolini?
+\item Who has written the most historical fiction books? 
+\end{itemize}
+
 \section{Previous Work}
 
 Work by Kaufmann and Bernstein \cite{usability} indicates
@@ -330,6 +340,26 @@ those ideals are true. As such, the results of certain queries
 The trade-off is that data in the cache can stagnate. That problem is mitigated by 
 simply flushing the cached results periodically.
 
+\subsection{SPARQL Generation}
+SPARQL is quite a complex query language. Therefore, generating SPARQL queries can be
+more complicated than simply fitting URIs into a templated string (which was our
+first approach to the problem). Figure \ref{fig:sparql_gen} is a UML diagram of the
+query generation framework we designed with several goals in mind. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth,natwidth=1,natheight=1]{umlet/sparql.pdf}
+    \caption{SPARQL Generation \cite{sparql, sparql11}}
+    \label{fig:sparql_gen}
+\end{figure}
+
+First and foremost, query generation is a source of bugs that can be preventeted by a well
+designed framework. Every manually entered string is a potential source of bugs, the
+arechitecture should reduce the need for manually inputting strings. Since SPARQL is
+by no means a trivial language, these manually entered strings are also a potential source
+of logic errors. Though some logic errors are impossible to prevent using anything short of
+a strong-AI, the proposed framework rigidly defines logical SPARQL code structures which
+will aid in understanding and using SPARQL correctly. 
 
 \section{Resolving User Input Names to RDF Entities}
 
