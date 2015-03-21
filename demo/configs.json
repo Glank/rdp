@@ -46,11 +46,11 @@
             },
             {
                 "module":"demo.sparql",
-                "class":"AdjectiveApplicator"
+                "class":"BooksRequestRule"
             },
             {
                 "module":"demo.sparql",
-                "class":"VerbPhraseRule"
+                "class":"GeneralBooksRule"
             }
         ]
     },

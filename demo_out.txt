@@ -1,0 +1,50 @@
+Grammar:
+0)	S -> subject_question
+1)	subject_question -> books_request
+2)	subject_question -> authors_request
+3)	books_request -> 'WHAT' general_books 'HAS' 'author' 'WROTE'
+4)	authors_request -> 'WHAT' general_authors 'HAS' 'WROTE' general_books
+5)	authors_request -> 'WHO' 'HAS' 'WROTE' general_books
+6)	authors_request -> 'WHAT' 'AUTHOR' 'WROTE' 'book'
+7)	authors_request -> 'WHO' 'WROTE' 'book'
+8)	general_books -> 'BOOKS'
+9)	general_books -> 'genre'
+10)	general_books -> 'genre' 'BOOKS'
+11)	general_books -> 'genre' 'AND' 'genre'
+12)	general_books -> 'genre' 'AND' 'genre' 'BOOKS'
+13)	general_authors -> 'AUTHOR'
+14)	general_authors -> 'genre' 'AUTHOR'
+
+Question:
+What science fiction books has George Martin written?
+
+Best Interpretation:
+S
+  subject_question
+    books_request
+      'WHAT':['WHAT']
+      general_books
+        'genre':['SCIENCE', 'FICTION']: 4.602974
+        'BOOKS':books
+      'HAS':['HAS']
+      'author':['GEORGE', 'MARTIN']: 0.488245
+      'WROTE':written
+
+SPARQL:
+PREFIX dbpprop: <http://dbpedia.org/property/>
+PREFIX dbp: <http://dbpedia.org/resource/>
+PREFIX dbpowl: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?book ?title
+WHERE {
+    ?book rdfs:label ?title;
+        dbpowl:author dbp:George_R._R._Martin;
+        dbpprop:genre dbp:Science_fiction.
+    FILTER langMatches( lang(?title), "EN" ).
+}
+
+Results:
+book                                      title
+----------------------------------------  ------------
+http://dbpedia.org/resource/Dark_Visions  Dark Visions

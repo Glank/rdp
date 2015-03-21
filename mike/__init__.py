@@ -33,8 +33,6 @@ class Mike:
         trees.sort(key=lambda x:x.get_info_content())
         found = False
         for best_interp in trees:
-            print best_interp
-            exit()
             try:
                 self.sparql_generator.get_sparql(
                     copy.deepcopy(best_interp), self.names, True

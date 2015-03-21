@@ -286,19 +286,73 @@ natural language names. Though Levenshtein's `edit distance' metric
 is a good comparison function for spelling mistakes, we've found that
 a Jaccard index based function is more suited to the task. 
 
-\subsection{Compilation}
-Compiling SPARQL queries from the resolved parse trees is the last step.
-For each type of question, there will be a separate unit which 
-generates SPARQL queries. There might be a more elegant way to handle this
-problem, but this seems like an extensible (if tedious to implement) solution.
-Generation is often just a matter of fitting RDF URIs into hard-coded templates.
+\subsection{Generation}
+Generating SPARQL queries from the resolved parse trees is the last step.
+Being the last step in a complex process, it is highly couple to the output of the
+previous steps which means that this module needs to be particularly adaptable.
+However, it is difficult to design such a module due, in part, to the complexity of 
+the SPARQL query language. So, it took several iteration to refine our approach.
+
+The first (inelegant) solution was to create a separate query-generating
+classes that would handle each type of question on a case-by-case basis.
+These classes did little more than fill in templated strings with URIs and did
+nothing to capture the maliability of natural language.
+Trying to extend the types of questions using that architecture, we found that
+this approach wasn't feasable for a larger application.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=1\textwidth,natwidth=1,natheight=1]{imgs/demo/sparql.png}
-    \caption{SPARQL Output}
+    \caption{SPARQL Output from the first approach. It's ugly, but it worked.}
     \label{fig:sparql}
 \end{figure}
+
+In the next iteration, we improved the adaptability of the process by 
+decoupling the query specification from the string generation. 
+That is, we built a module to encapsulate the structure and output of SPARQL
+queries with functions for common query-building tasks (adding tuples, 
+applying filters, etc.). See section \ref{section:sparql_gen} for more on this.
+
+In that iteration, our line-count for the query-generating code ballooned since
+we were explicitly constructing queries rather than relying on manually
+entered strings. But at the same time, it became less error-prone, more
+easily readable, and produced cleaner output.
+
+In the final iteration, we tried to increased the adapability of the 
+query-generating code by expressing the proceedure in terms of re-usable
+functions. Nodes from the parse tree are iterated over in a depth-first
+algorithm which effects changes to the query at only key nodes (such
+as particular noun phrase nodes).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.5\textwidth,natwidth=1,natheight=1]{imgs/demo/grammar2.png}
+    \caption{More difficult to convert, flexible grammar.}
+    \label{fig:slow_grammar}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\textwidth,natwidth=1,natheight=1]{imgs/demo/grammar3.png}
+    \caption{Easier to convert, rigid grammar}
+    \label{fig:fast_grammar}
+\end{figure}
+
+Durring that final iteration, it became clear that some grammars were much
+easier to parse than others. Grammars which used typical grammar-school abstractions
+for symbols (nouns, verbs, noun phrases, etc.) were easier to specify but much harder
+to parse. Such grammars (see figure \ref{fig:slow_grammar}).
+let in extranious interpretations that (while gramatically
+correct) bungle the named-entity-recognizer due to the number of possibilities which
+need to be ruled out. For example, ``What scify books has john wane writen?" is rather
+easy to interpret because we can imediately classify `scify' as a genre and `john wane'
+as a name. But the parser is less sure (something which could be tweeked) and erres
+on the the side of caution so it has to check most words as possibly being each type
+of noun (where the grammar allows) and it furthermore needs to check many possible divisions
+between words and needs to consider misspellings. All of this is handled more efficiently 
+if one simply specifies the grammar more explicitly in parser-friendly divisions 
+(see figure \ref{fig:fast_grammar}).
+
 
 \section{Software Architecture}
 
@@ -341,7 +395,9 @@ The trade-off is that data in the cache can stagnate. That problem is mitigated 
 simply flushing the cached results periodically.
 
 \subsection{SPARQL Generation}
-SPARQL is quite a complex query language. Therefore, generating SPARQL queries can be
+\label{section:sparql_gen}
+SPARQL is a complex query language with a long, well-documented 
+technical specification\cite{sparql, sparql11}. Generating SPARQL queries can be
 more complicated than simply fitting URIs into a templated string (which was our
 first approach to the problem). Figure \ref{fig:sparql_gen} is a UML diagram of the
 query generation framework we designed with several goals in mind. 
@@ -355,11 +411,20 @@ query generation framework we designed with several goals in mind.
 
 First and foremost, query generation is a source of bugs that can be preventeted by a well
 designed framework. Every manually entered string is a potential source of bugs, the
-arechitecture should reduce the need for manually inputting strings. Since SPARQL is
-by no means a trivial language, these manually entered strings are also a potential source
+arechitecture should reduce the need for manually inputting strings. Since SPARQL isn't
+trivial, these manually entered strings are also a potential source
 of logic errors. Though some logic errors are impossible to prevent using anything short of
 a strong-AI, the proposed framework rigidly defines logical SPARQL code structures which
 will aid in understanding and using SPARQL correctly. 
+
+It is also difficult to subdivide the task of building a query when that task only
+involves fitting strings into a template. That makes it hard to design a modular system to
+interpret the parse trees which come out of the natural language parser. And it {\em will}
+be necessary to subdivide that process in a larger, real-world system. With the building
+encapsulated in a separate module, functions can be coded which more more daftly manipulate
+the query rather than just plugging in values. It will aid the development processes in
+much the same way that automated-refactoring tools help coders produce code manually except
+more so.
 
 \section{Resolving User Input Names to RDF Entities}
 

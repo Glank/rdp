@@ -23,10 +23,10 @@ book = SHTLTerminal('BOOKS', pos='n')
 writen = SHTLTerminal('WROTE', pos='v')
 
 subject_question = Symbol('subject_question')
-abstract_noun_phrase = Symbol('np')
-author_noun_phrase = Symbol('author_np')
-book_noun_phrase = Symbol('book_np')
-proper_noun_phrase = Symbol('NP')
+books_request = Symbol('books_request')
+authors_request = Symbol('authors_request')
+general_books = Symbol('general_books')
+general_authors = Symbol('general_authors')
 
 start = Symbol('S')
 
@@ -34,24 +34,24 @@ class DemoGrammarFactory(GrammarFactory):
     def grammar(self, named_entities):
         rules = [
             Rule(start, [subject_question]),
-            Rule(subject_question, [what, abstract_noun_phrase, verb_phrase]),
-            Rule(subject_question, [what, verb_phrase]),
-            Rule(subject_question, [who, verb_phrase]),
-            
-            Rule(noun_phrase, []),
-            Rule(noun_phrase, [noun, _or, noun]),
-            Rule(noun_phrase, [noun, _and, noun]),
-            Rule(noun_phrase, [both, noun, _and, noun]),
-            Rule(noun_phrase, [noun]),
-            Rule(verb_phrase, [has, noun_phrase, verb]),
-            Rule(verb_phrase, [verb, noun_phrase]),
-            Rule(adjective, [named_entities.symbol('genre')]),
-            Rule(noun, [named_entities.symbol('genre')]),
-            Rule(noun, [named_entities.symbol('author')]),
-            Rule(noun, [named_entities.symbol('book')]),
-            Rule(noun, [author]),
-            Rule(noun, [book]),
-            Rule(verb, [writen]),
+            Rule(subject_question, [books_request]),
+            Rule(subject_question, [authors_request]),
+            Rule(books_request, 
+                [what, general_books, has, named_entities.symbol('author'), writen]),
+            Rule(authors_request, [what, general_authors, has, writen, general_books]),
+            Rule(authors_request, [who, has, writen, general_books]),
+            Rule(authors_request, [what, author, writen, named_entities.symbol('book')]),
+            Rule(authors_request, [who, writen, named_entities.symbol('book')]),
+            Rule(general_books, [book]),
+            Rule(general_books, [named_entities.symbol('genre')]),
+            Rule(general_books, [named_entities.symbol('genre'), book]),
+            Rule(general_books, 
+                [named_entities.symbol('genre'), _and, named_entities.symbol('genre')]),
+            Rule(general_books, 
+                [named_entities.symbol('genre'), _and, 
+                named_entities.symbol('genre'), book]),
+            Rule(general_authors, [author]),
+            Rule(general_authors, [named_entities.symbol('genre'), author]),
         ]
         return Grammar(rules)
 
@@ -64,32 +64,53 @@ class SubjectQuestionSetup(QueryConstructionRule):
         query.addNamespace(Namespace('dbpowl:','http://dbpedia.org/ontology/'))
         query.addNamespace(Namespace('rdfs:','http://www.w3.org/2000/01/rdf-schema#'))
         query.addNamespace(Namespace('rdf:','http://www.w3.org/1999/02/22-rdf-syntax-ns#'))
-        context['subject'] = Variable('subject')
-        context['subject_name'] = Variable('subject_name')
-        context['name_predicate'] = query.getReferent('rdfs:label')
-        if any(c.symbol==noun_phrase for c in parse_node.children):
-            np = (c for c in parse_node.children if c.symbol==noun_phrase).next()
-            subject = np.find_node(lambda x:x.symbol==noun)
-            assert(len(subject.children)==1)
-            if subject.children[0].symbol == book:
-                context['subject'] = Variable('book')
-                context['subject_name'] = Variable('title')
-            elif subject.children[0].symbol == author:
-                context['subject'] = Variable('author')
-                context['subject_name'] = Variable('name')
-            else:
-                raise SPARQLGenerationException(
-                    "Invalid Subject Noun: %r"%subject.children[0].symbol
-                )
-            subject.instance = context['subject']
-        query.addOutputs([context['subject'], context['subject_name']])
-        query.addTriple(Triple(
-            context['subject'], context['name_predicate'], context['subject_name']
-        ))
-        query.addFilter(Filter(
-            'FILTER langMatches( lang(%r), "EN" )'%context['subject_name']
-        ))
         return False #don't stop building, we just set up the query
+
+class BooksRequestRule(QueryConstructionRule):
+    def consume(self, parse_node, query, context):
+        if parse_node.symbol != books_request:
+            return False
+        book = Variable('book')
+        title = Variable('title')
+        query.addOutputs([book, title])
+        query.addTriple(Triple(book, query.getReferent('rdfs:label'), title))
+        query.addFilter(Filter('FILTER langMatches( lang(?title), "EN" )'))
+        #add author
+        author_symbol = context['named_entities'].symbol('author')
+        author_node = parse_node.find_node(lambda n:n.symbol==author_symbol)
+        author = Referent(author_node.instance[-1])
+        query.addTriple(Triple(book, query.getReferent('dbpowl:author'), author))
+        #inform the general_books node
+        gb_node = parse_node.find_node(lambda n:n.symbol==general_books)
+        gb_node.instance = book
+        return False 
+
+class GeneralBooksRule(QueryConstructionRule):
+    def consume(self, parse_node, query, context):
+        if parse_node.symbol != general_books:
+            return False
+        #get or make the book variable
+        book = parse_node.instance or query.newVariable('book')
+        parse_node.instance = book
+        #link it to the genres
+        genre_symbol = context['named_entities'].symbol('genre')
+        for genre_node in parse_node.find_nodes(lambda n:n.symbol==genre_symbol):
+            genre = Referent(genre_node.instance[-1])
+            query.addTriple(Triple(book, query.getReferent('dbpprop:genre'), genre))
+        return True #end dfs
+
+class AuthorsRequestSetup(QueryConstructionRule):
+    def consume(self, parse_node, query, context):
+        if parse_node.symbol != authors_request:
+            return False
+        context['subject'] = Variable('author')
+        name = Variable('name')
+        query.addOutput([context['subject'], name])
+        query.addTriple(Triple(
+            context['subject'], query.getReferent('rdfs:label'), name
+        ))
+        query.addFilter(Filter('FILTER langMatches( lang(?name), "EN" )'))
+        return False 
 
 def isImproperNoun(parse_node):
     if not parse_node.symbol == noun:
