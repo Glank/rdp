@@ -193,9 +193,6 @@ class ParseNode:
         #used if terminal
         self.instance = None
         self.range = None
-        #used if not terminal
-        self.prev = None
-        self.next = None
     def get_info_content(self):
         if self.instance is not None:
             if isinstance(self.instance, InformationPacket):

@@ -1,5 +1,5 @@
 import named
-import question
+import sparql_gen
 import tokenize
 
 from rdp import WordStream, Parser
@@ -10,14 +10,14 @@ class Mike:
         self.names = named.NamedEntityCollection(
             self.configs['named_entity_types']
         )
-        self.questions = question.QuestionCollection(
-            self.configs['questions']
+        self.sparql_generator= sparql_gen.SPARQLGenerator(
+            self.configs['sparql_generator']
         )
         self.tokenizer = tokenize.get_tokenizer(self.configs['tokenizer'])
     def build(self, rebuild=False):
         self.names.build(rebuild=rebuild)
     def _grammar_(self, verbose=False):
-        return self.questions.grammar(self.names, verbose=verbose)
+        return self.sparql_generator.grammar(self.names, verbose=verbose)
     def get_sparql(self, sentence, verbose=False):
         words = self.tokenizer.tokenize(sentence)
         stream = WordStream(words)
@@ -33,4 +33,4 @@ class Mike:
         if verbose:
             print "Best Interpretation:"
             print best_interp
-        return self.questions.get_sparql(best_interp, self.names)
+        return self.sparql_generator.get_sparql(best_interp, self.names)

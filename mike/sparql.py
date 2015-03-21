@@ -219,13 +219,16 @@ class Namespace:
         self.expansion = expansion
     def __repr__(self):
         return "PREFIX %s <%s>"%(self.prefix, self.expansion)
+    def __cmp__(self, other):
+        return cmp(repr(self),repr(other))
 
 class NamespaceTable:
     def __init__(self):
         self._namespaces_ = []
     def add(self, namespace):
         assert(isinstance(namespace, Namespace))
-        self._namespaces_.append(namespace)
+        if namespace not in self._namespaces_:
+            self._namespaces_.append(namespace)
     def minimize(self, uri):
         minimized = "<%s>"%uri
         for namespace in self._namespaces_:

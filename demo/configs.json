@@ -34,14 +34,18 @@
             }
         }
     ],
-    "questions":{
-        "question_types":[
+    "sparql_generator":{
+        "grammar_factory":{
+            "module":"demo.sparql",
+            "class":"DemoGrammarFactory"
+        },
+        "construction_rules":[
             {
-                "module":"demo.questions",
+                "module":"demo.sparql",
                 "class":"BibliographyRequest"
             },
             {
-                "module":"demo.questions",
+                "module":"demo.sparql",
                 "class":"AuthorSearch"
             }
         ]

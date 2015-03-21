@@ -17,9 +17,9 @@ print "Compiled Grammar:"
 print grammar
 print
 
-#question = 'Which writers have published both high fantasy and science fiction?'
+question = 'Which writers have published both high fantasy and science fiction?'
 #question = 'What books has Dave Wolverton written?'
-question = 'What books has Stephen King written?'
+#question = 'What books has Stephen King written?'
 #question = 'What books has George RR Martin written?'
 print "Question:"
 print question
