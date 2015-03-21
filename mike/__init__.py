@@ -1,6 +1,7 @@
 import named
 import sparql_gen
 import tokenize
+import copy
 
 from rdp import WordStream, Parser
 
@@ -29,7 +30,21 @@ class Mike:
             trees.append(interp.to_parse_tree())
         if not trees:
             return None
-        best_interp = min(trees, key=lambda x:x.get_info_content())
+        trees.sort(key=lambda x:x.get_info_content())
+        found = False
+        for best_interp in trees:
+            print best_interp
+            exit()
+            try:
+                self.sparql_generator.get_sparql(
+                    copy.deepcopy(best_interp), self.names, True
+                )
+                found = True
+                break
+            except sparql_gen.SPARQLGenerationException:
+                pass
+        if not found:
+            return None
         if verbose:
             print "Best Interpretation:"
             print best_interp

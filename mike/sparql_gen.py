@@ -24,7 +24,10 @@ def __dynamic_obj_load__(configs):
     clazz = getattr(mod, class_name)
     return clazz()
 
-def __preidentify_parse_tree__(parse_tree, named_entities):
+class SPARQLGenerationException(Exception):
+    pass
+
+def __preidentify_parse_tree__(parse_tree, named_entities, dummy_pass):
     class NextNode(Exception):
         pass
     for node in parse_tree.iter_nodes():
@@ -32,7 +35,13 @@ def __preidentify_parse_tree__(parse_tree, named_entities):
             for entity in named_entities:
                 if node.symbol==entity.symbol():
                     name = ' '.join(node.instance.obj)
-                    full_name, uri = entity.identifier.ident(name)
+                    if dummy_pass:
+                        identity = "-", "http://dummy_uri"
+                    else:
+                        identity = entity.identifier.ident(name)
+                    if identity is None:
+                        raise SPARQLGenerationException("Invalid Identity")
+                    full_name, uri = identity
                     node.instance = (name, full_name, uri)
                     raise NextNode()
         except NextNode:
@@ -53,8 +62,8 @@ class SPARQLGenerator:
             print g
         g.compile()
         return g
-    def get_sparql(self, parse_tree, named_entities):
-        __preidentify_parse_tree__(parse_tree, named_entities)
+    def get_sparql(self, parse_tree, named_entities, dummy_pass=False):
+        __preidentify_parse_tree__(parse_tree, named_entities, dummy_pass)
         cur_node = parse_tree
         iter_path = []
         context = {'named_entities':named_entities}

@@ -42,11 +42,15 @@
         "construction_rules":[
             {
                 "module":"demo.sparql",
-                "class":"BibliographyRequest"
+                "class":"SubjectQuestionSetup"
             },
             {
                 "module":"demo.sparql",
-                "class":"AuthorSearch"
+                "class":"AdjectiveApplicator"
+            },
+            {
+                "module":"demo.sparql",
+                "class":"VerbPhraseRule"
             }
         ]
     },

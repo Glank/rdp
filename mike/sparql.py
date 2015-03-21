@@ -1,3 +1,5 @@
+import random 
+
 class RawSPARQL:
     def __init__(self, repr_):
         self._repr_ = repr_
@@ -289,6 +291,8 @@ class SPARQLQuery:
         self.clause.setSSMods(ssmods)
     def getReferent(self, referentStr):
         return self.namespaces.maximize(referentStr)
+    def newVariable(self, basename):
+        return Variable("%s%d"%(basename,random.randint(0,9999)))
     def __str__(self):
         return self.build()
 
