@@ -424,9 +424,9 @@ checked for the absence or presence of n-grams as features and use a naive
 Bayesian classifier over that feature set\cite{bayes}.
 
 Bayesian classification involves calculating the probability of feature results
-(in this case the absence or presence of an n-gram in a string) then using the product
-of all those probabilities as an estimation of the total probability of that string
-occurring in a given set assuming that all features are independent. This is a
+(in this case the absense or presens of an n-gram in a string) then using the product
+of all those proabilities as an estimation of the total probability of that string
+occuring in a given set assuming that all features are independent. This is a
 pretty bold assumption and doesn't generally hold true for an n-gram feature set,
 but it gives a rough estimation which is all that was necessary in this case.
 
@@ -473,9 +473,9 @@ back on the user to select the appropriate name when there is no obvious best
 match.
 
 The resolution process differs from NER name matching in that the NER 
-only determines whether or not a name belongs to a certain type. For instance, the NER
-determines if `John Smith' is an author, but the resolution process will match that
-name to a URI like `http://example.org/john\_smith'. The NER can determine weather
+only determins wether or not a name belongs to a certain type. For instance, the NER
+determins if `John Smith' is an author, but the resolution process will match that
+name to a URI like `http://example.org/john\_smith'. The NER can determine wether
 a name belongs to a set quicker than the resolution process can determine exactly
 which URI matches a name.
 
@@ -505,7 +505,7 @@ There are two named entities in this parse tree, the genre and the author.}
 
 Figure \ref{fig:resolve} shows a case where semi-automatic reasoning is applied.
 For the first named entity, `science fiction' is automatically paired with the
-named entity `dbp:Science\_fiction' because its RDF label, `Science Fiction', is 
+named entity `dbp:Science\_fiction' because its rdf label, `Science Fiction', is 
 considered an exact match using our string comparison function. 
 Notice that it is a relatively poor named-entity match within the statistical model
 used for parsing since it has an information content of 4.6. 
@@ -1165,7 +1165,7 @@ and on their parse trees.
 
 \subsubsection{Substitution}
 
-A grammar, $G$, where substitution can be applied has rules for some non-terminals $A$ and $B$ of the form:
+A grammar, $G$, where substitution can be applied has rules for some nonterminals $A$ and $B$ of the form:
 \begin{align*}
 R_\alpha &= A \rightarrow B \alpha\\
 R_\beta(i) &= B \rightarrow \beta_i
@@ -1264,7 +1264,7 @@ $A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
 As this project draws to a close, there have been a number of key areas where more work
 could have been done and where this work might lead. 
 Recent works have directed their research towards the portability problem as a key area 
-for research. The portability problem being: the ability to quickly generate or adapt 
+for reasearch. The portability problem being: the ability to quickly generate or adapt 
 a NLI to a particular semantic dataset or interface. 
 One could say that, although this is obviously
 an important area to push forward, we should also focus on creating interfaces with a
