@@ -257,7 +257,7 @@ give top-down parsers trouble. But then the parser outputs
 parse trees under the original structure of the input grammar.
 This is accomplished by reversing the transformation required to remove left
 recursion (etc.) using the algorithms described in section \ref{gram_transforms}.
-This achieves a big design goal - its a huge step towards decoupling the
+This achieves a big design goal - it is a huge step towards decoupling the
 design of the grammar from the rest of the system.
 
 \begin{figure}[h!]
@@ -271,7 +271,7 @@ The grammar is manually coded to handle a small set of natural language question
 but is given more coverage by recognition of hyponyms and misspellings of named entities.
 The specification of the grammar is a design task which could be partially automated by
 using the ontology to enforce grammatical relationships between named entities. That
-was a bit beyond the scope of this project but it's an idea to keep in mind for further
+was a bit beyond the scope of this project but it is an idea to keep in mind for further
 research.
 
 \begin{figure}[h!]
@@ -316,8 +316,8 @@ book\_info \rightarrow\; & \text{ARE} \; \text{THE} \; \text{SAME} \; \text{GENR
 Figure \ref{fig:grammar} describes the grammar which we used in our system to recognize
 a limited set of natural language sentences. The grammar is composed of `production
 rules' which describe how a string can be formed by replacing symbols within a
-string. Strings always start off as a starting symbol, in this case it's ``$S$". From there,
-production rules are applied until a valid string is formed. If we follow rules 
+string. Strings always start off as a starting symbol, in this case it is ``$S$". From 
+there, production rules are applied until a valid string is formed. If we follow rules 
 \ref{gram:subj}, \ref{gram:auths}, and \ref{gram:who_wrote} we get the strings 
 ``$subject\_question$", ``$authors\_request$", then ``WHO WROTE book". This is a sentence
 constructed from abstract `terminal nodes' which fit to a standardized word or words.
@@ -342,7 +342,8 @@ non-terminals: $general\_authors$ and $general\_books$. If we chose the rules
 \ref{gram:comp_gen_auths} and \ref{gram:comp_gen_books} then we end up with the
 string ``WHAT genre AUTHOR HAS WROTE genre BOOKS". This question might match the
 real natural language question, ``What science fiction author has written 
-high fantasy novels?"
+high fantasy novels?" Notice that, in the grammar, non-terminal nodes are
+in italics.
 
 Grammar rules are specified for each type of question and each descriptive sentence
 fragment which corresponds to some SPARQL generation abstraction (see 
@@ -419,8 +420,15 @@ So for each class we built bloom filters\cite{bloom} and n-gram classification m
 which could give a simple probability measure of, ``Is X string Y classification?". 
 The n-gram classification models were rather simple to implement and worked well 
 with the Jaccard index comparison we use in section \ref{resolution}. We simply
-checked for the absence or presence of n-grams as features and use some naive
-Bayesian classification over that feature set.
+checked for the absence or presence of n-grams as features and use a naive
+Bayesian classifier over that feature set\cite{bayes}.
+
+Bayesian classification involves calculating the probability of feature results
+(in this case the absense or presens of an n-gram in a string) then using the product
+of all those proabilities as an estimation of the total probability of that string
+occuring in a given set assuming that all features are independent. This is a
+pretty bold assumption and doesn't generally hold true for an n-gram feature set,
+but it gives a rough estimation which is all that was necessary in this case.
 
 Our n-gram classification models capture features like common prefixes and suffixes
 while bloom filters trained on a range of single-edit variations of a name help
@@ -489,11 +497,11 @@ There are two named entities in this parse tree, the genre and the author.}
 
 Figure \ref{fig:resolve} shows a case where semi-automatic reasoning is applied.
 For the first named entity, `science fiction' is automatically paired with the
-named entity `dbp:Science\_fiction' because it's rdf label, `Science Fiction', is 
+named entity `dbp:Science\_fiction' because its rdf label, `Science Fiction', is 
 considered an exact match using our string comparison function. 
 Notice that it is a relatively poor named-entity match within the statistical model
 used for parsing since it has an information content of 4.6. 
-The name `E. A. Poe' is another mater. It's
+The name `E. A. Poe' is another mater. It is
 very close to two author names using the Jaccard index comparison function; both
 `Edgar Alen Poe' and `Michael Poe' are equally close matches by this metric so the
 user is prompted to choose between them.
@@ -501,11 +509,11 @@ user is prompted to choose between them.
 \subsection{Generation}
 \label{gen}
 The last step is to actually produce SPARQL queries from the resolved parse trees.
-Being the last step in a complex process, it is highly couple to the output of the
+Being the last step in a complex process, it is highly coupled to the output of the
 previous steps which means that this part needs to be particularly adaptable.
 However, it is difficult to design this generation process due, in part, 
 to the complexity of the SPARQL query language. 
-So, it took several iteration to refine our approach which are describe
+So, it took several iterations to refine our approach which are described
 in more detail in section \ref{section:sparql_gen}.
 
 
@@ -660,7 +668,7 @@ extraneous interpretations that (while grammatically
 correct) bungle the named-entity-recognizer due to the number of possibilities which
 need to be ruled out. For example, ``What scify books has john wane written?" is rather
 easy to interpret because we can immediately classify `scify' as a genre and `john wane'.
-It's easy to underestimate how much of that is from context; `scify' could be the
+It is easy to underestimate how much of that is from context; `scify' could be the
 name of an eccentric author or `john wane' the name of a biography.
 
 The NER's models are lax on purpose to account for these variabilities and
@@ -719,7 +727,7 @@ Names with multiple parts, like "John Jacob Jingleheimer Schmidt", need to be ma
 partial variation like "Schmidt", "Mr. Schmidt", and "John Schmidt". 
 Using a sufficiently robust string comparison function, these variations will often 
 still match the full, multi-part name better than other multi-part names.
-But that's a dubious assumption to rely upon - it's best to tokenize the name and
+But that's a dubious assumption to rely upon - it is best to tokenize the name and
 include the different partial variations as other names linked with the entity.
 As part of our own system, we simply included the first and last names as variations on
 the name, excluding the middle name(s).
@@ -763,7 +771,7 @@ Levenshtein distance (also known as 'edit distance') is a more common fuzzy stri
 than the Jaccard index. 
 Its ubiquity might be due to a simple happenstance: the algorithm for calculating edit distance is
 a favorite example in algorithm design courses for demonstrating dynamic programming.
-But it's popularity is by no means a guarantee that it is the best choice, as I'll demonstrate.
+But its popularity is by no means a guarantee that it is the best choice, as I'll demonstrate.
 
 Levenshtein distance is defined as \cite{levenshtein} the minimum number of 'edits' 
 (additions, deletions, or swaps) that must occur before one string matches another.
@@ -1090,7 +1098,7 @@ As each of these four procedures produces a weakly equivalent grammar,
 there exists a mapping for any decision list in a compiled grammar
 back into a same-terminal-producing decision list in the pre-compiled (parent) grammar.
 Our parser keeps track of these inverse transformation rules as performs
-it's compilation procedure so that a compiled grammar's decision list can be easily
+its compilation procedure so that a compiled grammar's decision list can be easily
 converted to the initial grammar's equivalent decision list. 
 
 Take this simple grammar for example:
@@ -1133,7 +1141,7 @@ into the parent-grammar-equivalent decision list: $[1, 2, 5, 1, 2, 4, 4]$.
 Left recursion is a problem for top-down parsers because it may cause them to
 go into an infinite loop. Using the model described in section \ref{rd_wo_sd}:
 when a PT node is reach where the first nonterminal symbol has a production rule with
-left recursion, it's child node will have the same nonterminal symbol so it will produce
+left recursion, its child node will have the same nonterminal symbol so it will produce
 a child node with the same nonterminal symbol ad infinitum - and none of those children will
 consume any terminals from the input stream so the parser will not proceed. 
 
@@ -1266,7 +1274,7 @@ And that leads to the obvious question: how can we ever hope to get there?
 
 We do have a fairly solid framework for understanding languages as static constructs
 \cite{chomsky}. We're slowly accumulating knowledge in the semantic web like 
-Tim Berners-Lee imagined, though not yet to the extent that he'd hoped. Perhaps it's
+Tim Berners-Lee imagined, though not yet to the extent that he'd hoped. Perhaps it is
 naive of me to think so, but this seems like the kind of problem where progress
 will be exponential. When we finally do start making serious headway into creating
 natural language interfaces for the semantic web, we'll be able to communicate and
@@ -1302,7 +1310,9 @@ if they are weakly equivalent and can assign any sentence the same parse tree. \
 \clearpage
 \section*{Appendix}
 
-Below example of SPARQL generated by one of the early iterations of our generation process
+This appendix contains miscellaneous figures and examples that came out of this work.
+
+Below is an example of SPARQL generated by one of the early iterations of our generation process
 which used simple string template filling. You'll notice some constants that are
 not abbreviated where they could be and less standard whitespace.
 
@@ -1331,7 +1341,8 @@ GROUP BY ?author
 \end{verbatim}
 
 
-A grammar we tried to use that wasn't much good:
+This is an earlier version of the grammar which was slow to parse for
+various reasons mentioned in section \ref{section:sparql_gen}:
 \begin{figure}[h!]
 \setcounter{equation}{0}
 \begin{align}
@@ -1355,11 +1366,20 @@ N \rightarrow\; & \text{BOOKS} \\
 V \rightarrow\; & \text{WROTE}
 \end{align}
 
-\caption{More difficult to convert, flexible grammar.}
+\caption{An earlier version of the parser's grammar.}
 \label{fig:slow_grammar}
 \end{figure}
 
+Finally, figure \ref{fig:output_example} is an example of the system's operation 
+with full output to show each step of the process:
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth,natwidth=1,natheight=1]{imgs/demo/resolve.png}
+    \caption{An example of the program's output.}
+    \label{fig:output_example}
+\end{figure}
 
+\clearpage
 \bibliography{thesis}{}
 \bibliographystyle{plain}
 \end{document}
