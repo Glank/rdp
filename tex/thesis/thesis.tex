@@ -387,11 +387,14 @@ are the same genre as Game of Thrones?" and determines the appropriate parse tre
 corresponds to it.
 
 Given a natural language question, the parser actually produces a number of
-parse trees and selects the `best' (most probable) interpretation. The probability
+parse trees. Each parse tree can be considered an interpretation of the question,
+so the parse then selects the `best' (most probable) interpretation. The probability
 of the interpretation depends on how close the named entities found in 
 the interpretations match the model defined for that entity (see section \ref{ner}). 
-The interpretation goes through the query generation process to see if there are
-any logic conflicts that the grammar cannot see. If an error is thrown generating the
+The probability of the interpretation is estimated by taking the product of the 
+estimated probabilities of all the named entities (again, see section \ref{ner} for
+more details). The interpretation goes through the query generation process to see if 
+there are any logic conflicts that the grammar cannot see. If an error is thrown generating the
 SPARQL, the next best interpretation is used.
 
 The example question's parse tree in figure \ref{fig:parse} shows the parse trees nodes
@@ -406,12 +409,17 @@ This value is explained in more detail in section \ref{ner}.
 \label{ner}
 Natural language names of `named objects' are recognized by a component of the system
 called the `named entity recognizer' \cite{ner1,ner2}. 
-The NER is greatly improved by context from being integrated into the parsing process.
-Still, setting up the NER for a higher level of accuracy requires a bit of preprocessing.
+The NER would be rather poor at prediting the type associated with a given name if that
+were the only information it had to go on. That is why each named entity type is associated
+with a terminal node in the grammar - it gains a great deal of accuracy by narrowing down
+the possible type for a given string using the context the grammar provides.
+Setting up the NER requires a bit of preprocessing:
+lists of natural language names are downloaded from the semantic database using
+manually entered SPARQL queries then compiled into classifier models.
+
 Typically, NERs use some means of machine learning to classify objects within a
 sentence based on parts of speech, word or phrase feature extraction, and other
 rather advanced topics\cite{ner1}. 
-
 For our work, the definition of classes for our named entities was determined by the
 DBPedia ontology. Also, having access to the data, we also have a rather large sample
 set of names for each classification.
@@ -421,7 +429,8 @@ which could give a simple probability measure of, ``Is X string Y classification
 The n-gram classification models were rather simple to implement and worked well 
 with the Jaccard index comparison we use in section \ref{resolution}. We simply
 checked for the absence or presence of n-grams as features and use a naive
-Bayesian classifier over that feature set\cite{bayes}.
+Bayesian classifier over that feature set\cite{bayes} so the same features
+informed both the NER and the resolution process.
 
 Bayesian classification involves calculating the probability of feature results
 (in this case the absence or presence of an n-gram in a string) then using the product
