@@ -51,6 +51,14 @@
             {
                 "module":"demo.sparql",
                 "class":"GeneralBooksRule"
+            },
+            {
+                "module":"demo.sparql",
+                "class":"AuthorsRequestRule"
+            },
+            {
+                "module":"demo.sparql",
+                "class":"BookInfoRule"
             }
         ]
     },

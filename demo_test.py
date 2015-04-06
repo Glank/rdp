@@ -17,11 +17,17 @@ print "Compiled Grammar:"
 print grammar
 print
 
+#question = 'What science fiction books has E. A. Poe written?'
 #question = 'Which writers have published both high fantasy and science fiction?'
 #question = "Which authors have writen science fiction?"
-#question = 'What books has Dave Wolverton written?'
-question = 'What science fiction books has George Martin written?'
-#question = 'Who wrote Eragon?'
+#question = 'What books has Heinline written?'
+#question = 'What science fiction and high fantasy books has George Martin written?'
+#question = 'What science fiction books has George Martin written?'
+#question = 'Who wrote Ferinheit 450?'
+#question = 'What books has Dave Wolverton written that are the same genre as Game of Thrones?'
+#question = 'What books has Dave Wolverton written that are the same genre as Revolt in 2100?'
+#question = 'What science fiction author has written high fantasy novels?'
+question = 'Who scrawled Ferinheit 451?'
 print "Question:"
 print question
 print

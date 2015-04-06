@@ -4,15 +4,20 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{graphicx}
+\usepackage{dirtree}
+\usepackage{listings}
 \graphicspath{{../../}}
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{notation}{Notation}
+\newtheorem{note}{Note}
+
 
 \begin{document}
 
-\title{Querying the Semantic Web with Natural Language}
+
+\title{Querying Semantic Data with Natural Language}
 \author{Ernest Kirstein}
 \maketitle
 \clearpage
@@ -20,44 +25,84 @@
 \tableofcontents
 \clearpage
 
+\begin{abstract}
+Searching through semantic data using SPARQL requires expert knowledge and thus remains out of reach for casual users. In this work, we explore the development of natural language interfaces for semantic data. This work looks at a number of approaches towards this goal as well as providing a new approach. Our system works like a natural language compiler and handles a limited set of natural language questions which, though narrow in scope, have complex semantics that other systems would be unable to handle.
+\end{abstract}
+\clearpage
+
 \section{Introduction}
-The semantic web (as envisioned by Tim Berners-Lee et al.) is an extension of
+The semantic web, as envisioned by Tim Berners-Lee et al., is an extension of
 the internet which provides more structure to the vast chaos of data on the
-net. The goal has always been for the semantic web to become
-a means for artificially intelligent agents to share information and reasoning \cite{semantic}.
+net. The goal has always been for the semantic web to become a means for 
+artificially intelligent agents to share information and reasoning\cite{semantic}.
 Unfortunately for us humans, the semantic web has proven rather difficult for
 casual users to interact with.
 
-\subsection{Purpose}
-
 To unlock the power behind the semantic web, there needs to be a way for people
 to interface with it and ask questions about stored (or reasoned) information. 
-One of the main interfaces is called SPARQL. 
-SPARQL is a query language that is used to ask questions about semantic
-data \cite{sparql}. The main benefit to this type of interface is that it allows users to 
-ask complex, exact questions. The main drawback, being a formal query language, is that
-SPARQL has a steep learning curve and is only accessible to expert users.
+SPARQL is a common query language for searching through data on parts the 
+semantic web\cite{sparql}. The main benefit using a formal query language 
+is that it allows users to ask complex, exact questions. 
+The main drawback to formal query languages is that
+they have a steep learning curve and are really only viable for expert users.
 
-The system we propose in this work attempts to make the semantic web more accessible
-by allowing users to ask questions in natural language (i.e. plain English).
-The actual implementation of this tool handles only a small range of questions,
-but it does demonstrate promising possibilities.
+So the usefulness of semantic data is largely inaccessible to casual internet users,
+but it does not have to be. Natural languages (English, Spanish, etc.) are more than
+capable of expressing the same sorts of questions that SPARQL can ask. But parsing and 
+interpreting natural language is a little bit beyond
+our current technology. Tools like Siri\cite{siri} have already begun to bridge that
+gap but there is a lot of room for improvement. 
 
-\subsection{Domain}
+This thesis will discuss the various approaches that have been made to make
+semantic data accessible through natural language interfaces, the direction of ongoing
+research in the field, and our own contributions to the solution.
 
-The world wide web has it's foundation in HTML/CSS/JS documents and HTTP requests.
-Similarly, the semantic web is rooted in RDF/OWL documents and SPARQL queries.
+\subsection{The Semantic Web}
 
-RDF documents are XML pages which
-describe object types (classes), and instances of those types. 
-They can also document relations between objects hierarchically or compositionally. 
-RDF documents are quite expressive, in and of themselves. 
+The definition of the semantic web is somewhat nebulous. Any semantic
+data or interface for that data might qualify as part of the semantic web.
+Semantic data is information which is structured in ways that allow artificial
+intelligence agents to understand the meaning behind the data - data which
+captures relationships and connections and not just numbers. 
 
-Then there are OWL ontologies which are RDF documents for describing relations
-between RDF entities\cite{owl}. OWL is more technically specified so as to
-aid in further automated reasoning
-over RDF data stores. RDF may make the semantic web expressive, but OWL
-allows it to be intelligent.
+The most common type of semantic data is in the form of `triples`. These are
+small pieces of information which relate a subject and object via a predicate.
+Triples store information like, ``John is an author." In such a sentence,
+`John' would be the subject, `is a' the predicate, and `author' the object.
+Except, in the semantic web, each of those concepts would be represented
+by a URI (uniform resource identifier). So the triple would actually be
+represented by something like, ``http://example.com/john rdf:type dbpdia-owl:writer''.
+
+More complex information can be represented by multiple triples. As one might
+imagine, this makes expressing information in semantic data a little tedious.
+So, more commonly, semantic data is stored in specialized documents which 
+translate into triples.
+
+RDF\cite{rdf} is a semantic data framework which specifies some foundational URIs for triples
+as well as an XML format to more easily express those triples. This framework
+is used to describe object types (classes), properties of those types, properties
+of those properties, and further foundation information for a well-rounded
+grounding of more comprehensive semantic data. 
+RDF documents are quite expressive in and of themselves.
+Some basic reasoning engines can be built just rooted in RDF statements 
+which propagate information about classes and their properties. For example, 
+``Dogs bark. Spot is a dog. Can spot bounce?"
+
+OWL\cite{owl} is an extension to the RDF framework which provides another layer
+of reasoning to the rigid class specifications of plain RDF. For example,
+"If x is a pet and x barks, x is a dog. Spot is a pet. Spot barks. Is spot a dog?"
+RDF may make the semantic web expressive, but OWL allows it to be intelligent.
+
+Semantic data is hosted on the internet and this makes up a part of the semantic web.
+Interfaces to that data may are also a part of the web and many of these interfaces
+use SPARQL. As mentioned before, SPARQL is a structured query language for asking
+rigorously define questions over a semantic data set. SPARQL queries set up constrains
+for triples or sets of triples to fit and an interface which executes SPARQL queries
+returns the values from triples which match those constrains. Some engines also
+incorporate reasoning using ontological and semantic knowledge - others simply look
+at existing triples and return `dumb' results.
+
+\subsection{DBPedia}
 
 The website DBPedia\cite{dbpedia,dbpedia-swj} is a RDF data store containing information 
 which has been curated from Wikipedia. It is a massive collection of structured data
@@ -93,16 +138,16 @@ Three classes of objects are enough to ask challenging questions but keep the
 scope within range of a research project. We hoped our system would be able to 
 handle questions as complex as:
 \begin{itemize}
-\item What science fiction books has George Martin written?
+\item What books has Heinlein written?
+\item Who wrote Fahrenheit 450?
 \item Which authors have written both science fiction and high fantasy novels?
-\item Which books has Dave Wolverton written that are the same genre as Eragon by Paolini?
-\item Who has written the most historical fiction books? 
+\item Which books has Dave Wolverton written that are the same genre as Game of Thrones?
 \end{itemize}
 
 \section{Previous Work}
 
 Work by Kaufmann and Bernstein \cite{usability} indicates
-that users have a “clear preference” for even limited natural language interfaces
+that users have a ``clear preference" for even limited natural language interfaces
 when compared to keyword or query language interfaces.
 Casual users of the semantic web have needs that require a more precise interface
 than the common keyword-based search engines of the early web. But they also
@@ -161,27 +206,21 @@ As such, even NLIs require some user support and training (though much less than
 a formal query language would). \cite{usability}
 
 \section{Converting Natural Language Questions into \\SPARQL Queries}
-Since SPARQL is already a well-worn tool for navigating the semantic
-web, it make sense to make use of it. This system we have built receives natural language
-questions such as, ``What author has written both high fantasy and science fiction?"
-Then the system produces a SPARQL query which asks the same question. 
-The end goal is to allow general users to achieve the same level of sophistication
-as expert users using English rather than SPARQL.
+Since SPARQL is already an established tool for navigating the semantic
+web, it makes solid foundation to build higher level natural language queries.
+This system we have built receives natural language questions such as, 
+``What books has Dave Wolverton written that are the same genre as Game of Thrones?''
+That question is parsed, related back to a custom indexing of DBPedia URIs, then
+a SPARQL query gets compiled and executed.
 
-The foundations of both compiler design and natural language processing
-have significant overlap \cite{chomsky, reghizzi}.
-However, in practice, the two different disciplines often take very different approaches to 
-problems\cite{aho, anatomy, reghizzi}.
-Some think \cite{usability} that a middle ground between these estranged fields is where
-NLIs will be grown successfully.
+In short, our approach was to build a `natural language compiler' of sorts. Something
+robust enough to handle real-world natural language usage but rigid enough to translate
+into SPARQL queries. So our research touches a little more on compiler design than 
+one would typically see in natural language processing research.
+The two areas of research have significant 
+overlap\cite{chomsky, reghizzi} and other work has suggested that that a middle ground 
+between these two research angles might be where NLIs find the most success\cite{usability}.
 
-Our approach was be to build a ``natural language compiler" of sorts.
-That is, to approach the problem of converting natural language questions into
-SPARQL queries just as one might convert Java source code into byte code.
-The problems are several orders of magnitude apart in complexity, so 
-our only expected goal was only to parse a limited range of natural language questions.
-But in that range of questions, we intend to show that multifaceted questions
-can be handled on a limited basis.
 
 \begin{figure}[h!]
     \centering
@@ -193,46 +232,33 @@ can be handled on a limited basis.
 Figure \ref{fig:process} shows a brief outline of the full process. Questions come
 in the form of natural language questions and are fed into a parser. The parser is
 informed by the named entity recognizer which provides recognition of nouns, adjectives,
-or verbs whose names must be scraped from the RDF database. The parse tree (the output
-of the parser) then goes through a name/URI resolution process which matches the
-natural language names to their corresponding RDF URIs. Finally, the resolved parse
-tree goes into a SPARQL-generating process which outputs a query.
-
-\subsection{Named Entity Recognition}
-Natural language names of `named objects' are recognized by a component of the system
-called the `named entity recognizer' \cite{ner1,ner2}. 
-The NER is greatly improved by context from being integrated into the parsing process.
-Still, setting up the NER for a higher level of accuracy requires a bit of preprocessing.
-
-Statistical character models are constructed from the output of queries for all 
-objects of a certain type in the target RDF database. 
-These models are used to recognize arbitrary tokens (or combinations of 
-tokens) within the parser's grammar. Generally, we have found that it was sufficient
-to simply pull the RDFS label for all the objects of a class to use as the data
-set for recognizing the names.
-
-These models allow for probabilistic recognition of the input strings in 
-$O(1)$ time (in relation to the number of objects in the RDF
-database). They recognize variations on the names (typos, variations, etc.)
-within some user-defined bound. 
-
-Furthermore, these models allow for $O(1)$
-approximation of their 'probability' within the set of all the names of instances
-of that class. This is important for determining which interpretation of a
-question is the correct one: we can generally assume that the most probable
-interpretation is the correct one. Exceptions of that rule are where there exist
-logical ambiguities rather than semantic ones (``How big is New York?" is a common example
-of an ambiguous question - which New York and how is `big' defined?).
+or verbs whose names must be scraped from the RDF database. The parser also 
+leverages the python natural language toolkit\cite{nltk} for access to synonyms and
+hyponyms. The parse tree (the output of the parser) then goes through a name/URI 
+resolution process which matches the natural language names to their corresponding
+RDF URIs. Finally, the resolved parse tree goes into a SPARQL-generating process 
+which outputs a query.
 
 \subsection{Parsing}
 
 This system uses a custom parser which has been implemented especially for
 this project. One of the contributions of this work is the unique implementation
-of this parser. The parser automatically handles left recursion and a few other
-hiccups which usually give top-down parsers trouble. However, the parser outputs
+of this parser. Parsing is typically done around a `grammar' which specifies how
+words fit together and what is a valid statement within the context of a language.
+There are other models for the description of a language\cite{chomsky} but
+typically specifying a grammar like in figure \ref{fig:grammar} is one critical
+aspect to developing a language-processing system.
+
+Certain parsers require their grammars to have certain properties. Those properties
+might be something of a hindrance to the development process, so we have sought
+a way to work round the problem. Our parser automatically changes a grammar
+to remove problems like left recursion and a few other hiccups which usually 
+give top-down parsers trouble. But then the parser outputs
 parse trees under the original structure of the input grammar.
 This is accomplished by reversing the transformation required to remove left
 recursion (etc.) using the algorithms described in section \ref{gram_transforms}.
+This achieves a big design goal - its a huge step towards decoupling the
+design of the grammar from the rest of the system.
 
 \begin{figure}[h!]
     \centering
@@ -241,41 +267,197 @@ recursion (etc.) using the algorithms described in section \ref{gram_transforms}
     \label{fig:high_level_parse}
 \end{figure}
 
-The grammar generated to handle the natural language questions
-is composed of rules which handle each type of question.
-The `type' of question is vague: it is largely a matter of design preference.
-The broader the scope of a `type', the harder it will be to develop a grammar
-which recognizes that question. But the narrower the types, the more types
-will need to be implemented to cover the same range of questions.
+The grammar is manually coded to handle a small set of natural language questions
+but is given more coverage by recognition of hyponyms and misspellings of named entities.
+The specification of the grammar is a design task which could be partially automated by
+using the ontology to enforce grammatical relationships between named entities. That
+was a bit beyond the scope of this project but it's an idea to keep in mind for further
+research.
 
 \begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\textwidth,natwidth=1,natheight=1]{imgs/demo/grammar.png}
-    \caption{Grammar}
-    \label{fig:grammar}
+
+\setcounter{equation}{0}
+\begin{align}
+S \rightarrow\; & subject\_question \label{gram:subj}\\
+subject\_question \rightarrow\; & books\_request \label{gram:books}\\
+subject\_question \rightarrow\; & authors\_request \label{gram:auths}\\
+books\_request \rightarrow\; &
+\text{WHAT} \; general\_books \; \text{HAS} \; \text{author} \; \text{WROTE} 
+\label{gram:sim_books}\\
+books\_request \rightarrow\; & \label{gram:comp_books}
+\text{WHAT} \; \text{BOOKS} \; \text{HAS} \; \text{author} \; \text{WROTE}\\
+&\text{THAT} \; book\_info \nonumber\\
+authors\_request \rightarrow\; &
+\text{WHAT} \; general\_authors \; \text{HAS} \; \text{WROTE} \\
+&general\_books \nonumber \label{gram:comp_auths}\\
+authors\_request \rightarrow\; &
+\text{WHO} \; \text{HAS} \; \text{WROTE} \; \text{book}\\
+authors\_request \rightarrow\; &
+\text{WHAT} \; \text{AUTHOR} \; \text{WROTE} \; \text{book}\\
+authors\_request \rightarrow\; &
+\text{WHO} \; \text{WROTE} \; \text{book} \label{gram:who_wrote}\\
+general\_books \rightarrow\; & \text{BOOKS} \label{gram:simp_gen_books}\\
+general\_books \rightarrow\; & \text{genre}\\
+general\_books \rightarrow\; & \text{genre} \; \text{BOOKS} \label{gram:comp_gen_books}\\
+general\_books \rightarrow\; & 
+\text{genre} \; \text{AND} \; \text{genre}\\
+general\_books \rightarrow\; & 
+\text{genre} \; \text{AND} \; \text{genre} \; \text{BOOKS}\\
+general\_authors \rightarrow\; & \text{AUTHOR} \label{gram:simp_gen_auths}\\
+general\_authors \rightarrow\; & \text{genre} \; \text{AUTHOR} \label{gram:comp_gen_auths}\\
+book\_info \rightarrow\; & \text{ARE} \; \text{THE} \; \text{SAME} \; \text{GENRE} \;
+\text{AS} \; \text{book} \label{gram:book_info}
+\end{align}
+
+\caption{Grammar}
+\label{fig:grammar}
 \end{figure}
 
-Grammar rules are defined for each question, then compiled into a single
-unified grammar (see figure \ref{fig:grammar}) with left recursion and other such 
-nuisances automatically `compiled' into the grammar. 
-Again, that is to be discussed in a later section.
+Figure \ref{fig:grammar} describes the grammar which we used in our system to recognize
+a limited set of natural language sentences. The grammar is composed of `production
+rules' which describe how a string can be formed by replacing symbols within a
+string. Strings always start off as a starting symbol, in this case it's ``$S$". From there,
+production rules are applied until a valid string is formed. If we follow rules 
+\ref{gram:subj}, \ref{gram:auths}, and \ref{gram:who_wrote} we get the strings 
+``$subject\_question$", ``$authors\_request$", then ``WHO WROTE book". This is a sentence
+constructed from abstract `terminal nodes' which fit to a standardized word or words.
+In this grammar we used upper case words to represent words or sets of words that are 
+not associated with RDF entities. Lower case words represent RDF entities. 
+So our constructed sentence might match the real question, ``Who wrote The Giver?"
+
+The terminal nodes for some words also leverage the python NLTK\cite{nltk} to gain access 
+to synonyms, hyponyms, and different tenses/pluralities of the word; 
+for instance `WROTE' actually matches a lot of words; 
+`written', `penned', `authored', `scrawled'. Other terminal nodes
+simply include a fixed set of words that were manually entered.
+
+For another example, if we followed the rules \ref{gram:subj}, \ref{gram:auths}, 
+\ref{gram:comp_auths} then our strings would progress as follows: 
+``$S$", ``$subject\_question$", ``$authors\_request$", 
+``WHAT $general\_authors$ HAS WROTE $general\_books$". Rule \ref{gram:subj} told us to 
+replace $S$ with $subject\_question$. Rule \ref{gram:subj} told us to replace
+$subject\_questions$ with $authors\_request$. Nodes that get replaced like this
+are called `non-terminal'. We can apply two more rules for each of our remaining
+non-terminals: $general\_authors$ and $general\_books$. If we chose the rules
+\ref{gram:comp_gen_auths} and \ref{gram:comp_gen_books} then we end up with the
+string ``WHAT genre AUTHOR HAS WROTE genre BOOKS". This question might match the
+real natural language question, ``What science fiction author has written 
+high fantasy novels?"
+
+Grammar rules are specified for each type of question and each descriptive sentence
+fragment which corresponds to some SPARQL generation abstraction (see 
+figure \ref{fig:grammar}). In our example grammar, you'll see `general books' as a
+non-terminal grammar node which corresponds to phrases like ``science fiction novels",
+``history and fantasy books", etc. Choosing how to design the grammar is not an
+easy task and required several iterations before some design principals became apparent.
+For more on this, see section \ref{gen}. 
 
 \begin{figure}[h!]
-    \centering
-    \includegraphics[scale=1.0,natwidth=1,natheight=1]{imgs/demo/parse.png}
-    \caption{Input and Parse Tree}
-    \label{fig:parse}
+\dirtree{%
+.1 $S$.
+.2 $subject\_questions$.
+.3 $books\_request$.
+.4 WHAT.
+.4 BOOKS.
+.4 HAS.
+.4 author: Dave Wolverton, 0.408655.
+.4 WROTE.
+.4 THAT.
+.4 $book\_info$.
+.5 ARE.
+.5 THE.
+.5 SAME.
+.5 GENRE.
+.5 AS.
+.5 book: Game of Thrones, 0.928662.
+}
+\caption{Parse Tree - the Output of the parser for the question, 
+``Which books has Dave Wolverton written that are the same genre as Game of Thrones?"}
+\label{fig:parse}
 \end{figure}
 
-Given a natural language question, the parser then produces a number of
-parse trees and selects the "best" (most probable) interpretation. That
-interpretation gets converted back into a form that would be produced from the
-original grammar (with left recursion etc. restored).
+A parse tree is a hierarchical representation of the application of a grammar's rules.
+For example, the parse tree in \ref{fig:parse} shows the how the application of rules
+\ref{gram:subj}, \ref{gram:books}, \ref{gram:comp_books}, and \ref{gram:book_info}
+are applied to build the string, 
+``WHAT BOOKS HAS author WROTE THAT ARE THE SAME GENRE AS book". The parse takes
+natural language sentences like, ``Which books has Dave Wolverton written that
+are the same genre as Game of Thrones?" and determines the appropriate parse tree which
+corresponds to it.
+
+Given a natural language question, the parser actually produces a number of
+parse trees and selects the `best' (most probable) interpretation. The probability
+of the interpretation depends on how close the named entities found in 
+the interpretations match the model defined for that entity (see section \ref{ner}). 
+The interpretation goes through the query generation process to see if there are
+any logic conflicts that the grammar cannot see. If an error is thrown generating the
+SPARQL, the next best interpretation is used.
+
+The example question's parse tree in figure \ref{fig:parse} shows the parse trees nodes
+in a tabbed hierarchy. On the left are the names of the nodes and to
+the right of each name you'll see some representation from the sentence that 
+corresponds with the node. Named entity nodes also have a number which is the
+`information content' of that node (an inverse log of the probability) which is higher
+the further away a string is from the expect average in that named entity class.
+This value is explained in more detail in section \ref{ner}.
+
+\subsection{Named Entity Recognition}
+\label{ner}
+Natural language names of `named objects' are recognized by a component of the system
+called the `named entity recognizer' \cite{ner1,ner2}. 
+The NER is greatly improved by context from being integrated into the parsing process.
+Still, setting up the NER for a higher level of accuracy requires a bit of preprocessing.
+Typically, NERs use some means of machine learning to classify objects within a
+sentence based on parts of speech, word or phrase feature extraction, and other
+rather advanced topics\cite{ner1}. 
+
+For our work, the definition of classes for our named entities was determined by the
+DBPedia ontology. Also, having access to the data, we also have a rather large sample
+set of names for each classification.
+
+So for each class we built bloom filters\cite{bloom} and n-gram classification models 
+which could give a simple probability measure of, ``Is X string Y classification?". 
+The n-gram classification models were rather simple to implement and worked well 
+with the Jaccard index comparison we use in section \ref{resolution}. We simply
+checked for the absence or presence of n-grams as features and use some naive
+Bayesian classification over that feature set.
+
+Our n-gram classification models capture features like common prefixes and suffixes
+while bloom filters trained on a range of single-edit variations of a name help
+to catch non-standard names. Other more accurate models exist, but these served
+our purposes and had certain properties that were important within the context
+of the parser.
+
+These models need to allow for probabilistic recognition of the input strings in 
+below $O(n)$ time (in relation to the number of objects in the RDF
+database) to be done efficiently within the context of the parser. 
+Additionally, they need to recognize variations on
+the names (typos, variations, etc.) within some user-defined as a standard feature
+that casual users expect from a search engine.
+
+Furthermore, these models need to provide faster than $O(n)$
+approximation of their 'probability' within the set of all the names of instances
+of that class. This is important for determining which interpretation of a
+question is the correct one: we can generally assume that the most probable
+interpretation is the correct one. Exceptions of that rule are where there exist
+logical ambiguities rather than semantic ones (``How big is New York?" is a common example
+of an ambiguous question - which New York and how is `big' defined?). 
+
+This probability is expressed as `information content'\cite{shannon} which is
+the value that you'll see in figure \ref{fig:parse}. 
+Information content is a function which is useful for expressing very small 
+probabilities, there was no other significant reason for expressing
+probabilities in this form. Suffice it to say that larger values for information content
+mean smaller probabilities. Where $I(x)$ is the information content in an event
+$x$ and $P(x)$ is the probability:
+
+\[ I(x) = -\log(P(x)) \]
 
 \subsection{Resolution}
+\label{resolution}
 After parsing, specific instances of named entities need to be `resolved' to
 corresponding RDF entities. Natural language names (like "John Smith") are mapped
-to RDF URIs (like "http://sbc.net/smith394")
+to RDF URIs (like ``http://sbc.net/smith394")
 in a semi-automated process. This boils down to searching a
 database of names with a good fuzzy string matching algorithm and falling
 back on the user to select the appropriate name when there is no obvious best 
@@ -286,73 +468,89 @@ natural language names. Though Levenshtein's `edit distance' metric
 is a good comparison function for spelling mistakes, we've found that
 a Jaccard index based function is more suited to the task. 
 
+\begin{figure}[h!]
+\dirtree{%
+.1 $S$.
+.2 $subject\_questions$.
+.3 $books\_request$.
+.4 WHAT.
+.4 $general\_books$.
+.5 genre: science fiction, 4.602974.
+.5 BOOKS.
+.4 HAS.
+.4 author: {E. A. Poe}, 2.184804.
+.4 WROTE.
+}
+\caption{The parse tree for the question, 
+``What science fiction books has E. A. Poe written?"
+There are two named entities in this parse tree, the genre and the author.}
+\label{fig:resolve}
+\end{figure}
+
+Figure \ref{fig:resolve} shows a case where semi-automatic reasoning is applied.
+For the first named entity, `science fiction' is automatically paired with the
+named entity `dbp:Science\_fiction' because it's rdf label, `Science Fiction', is 
+considered an exact match using our string comparison function. 
+Notice that it is a relatively poor named-entity match within the statistical model
+used for parsing since it has an information content of 4.6. 
+The name `E. A. Poe' is another mater. It's
+very close to two author names using the Jaccard index comparison function; both
+`Edgar Alen Poe' and `Michael Poe' are equally close matches by this metric so the
+user is prompted to choose between them.
+
 \subsection{Generation}
-Generating SPARQL queries from the resolved parse trees is the last step.
+\label{gen}
+The last step is to actually produce SPARQL queries from the resolved parse trees.
 Being the last step in a complex process, it is highly couple to the output of the
-previous steps which means that this module needs to be particularly adaptable.
-However, it is difficult to design such a module due, in part, to the complexity of 
-the SPARQL query language. So, it took several iteration to refine our approach.
+previous steps which means that this part needs to be particularly adaptable.
+However, it is difficult to design this generation process due, in part, 
+to the complexity of the SPARQL query language. 
+So, it took several iteration to refine our approach which are describe
+in more detail in section \ref{section:sparql_gen}.
 
-The first (inelegant) solution was to create a separate query-generating
-classes that would handle each type of question on a case-by-case basis.
-These classes did little more than fill in templated strings with URIs and did
-nothing to capture the maliability of natural language.
-Trying to extend the types of questions using that architecture, we found that
-this approach wasn't feasable for a larger application.
 
 \begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\textwidth,natwidth=1,natheight=1]{imgs/demo/sparql.png}
-    \caption{SPARQL Output from the first approach. It's ugly, but it worked.}
-    \label{fig:sparql}
+\dirtree{%
+.1 $S$.
+.2 $subject\_questions$.
+.3 $books\_request$.
+.4 WHAT.
+.4 $general\_books$.
+.5 genre: science fiction, 4.602974.
+.5 BOOKS.
+.4 HAS.
+.4 author: {George Martin}, 0.488245.
+.4 WROTE.
+}
+\begin{verbatim}
+PREFIX dbpprop: <http://dbpedia.org/property/>
+PREFIX dbp: <http://dbpedia.org/resource/>
+PREFIX dbpowl: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?book ?title ?genre
+WHERE {
+    ?book rdfs:label ?title;
+        dbpprop:genre ?genre;
+        dbpowl:author dbp:George_R._R._Martin;
+        dbpprop:genre dbp:Science_fiction.
+    FILTER langMatches( lang(?title), "EN" ).
+}
+LIMIT 100
+\end{verbatim}
+\caption{An example of SPARQL being generated from a parse tree.}
+\label{fig:gen_example}
 \end{figure}
 
-In the next iteration, we improved the adaptability of the process by 
-decoupling the query specification from the string generation. 
-That is, we built a module to encapsulate the structure and output of SPARQL
-queries with functions for common query-building tasks (adding tuples, 
-applying filters, etc.). See section \ref{section:sparql_gen} for more on this.
+You can see in figure \ref{fig:gen_example} an example of the final output from the
+SPARQL generation process. In this instance, three generation rules were applied to
+the parse tree during the generation phase; one which setup the query for being
+a DBPedia select query (configuring namespaces mostly); one which configured
+the query to be a request for books (selecting outputs and specifying key variables);
+and the last to link the subject variable to the general books adjectives (specifying
+the books grammar). 
 
-In that iteration, our line-count for the query-generating code ballooned since
-we were explicitly constructing queries rather than relying on manually
-entered strings. But at the same time, it became less error-prone, more
-easily readable, and produced cleaner output.
-
-In the final iteration, we tried to increased the adapability of the 
-query-generating code by expressing the proceedure in terms of re-usable
-functions. Nodes from the parse tree are iterated over in a depth-first
-algorithm which effects changes to the query at only key nodes (such
-as particular noun phrase nodes).
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.5\textwidth,natwidth=1,natheight=1]{imgs/demo/grammar2.png}
-    \caption{More difficult to convert, flexible grammar.}
-    \label{fig:slow_grammar}
-\end{figure}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\textwidth,natwidth=1,natheight=1]{imgs/demo/grammar3.png}
-    \caption{Easier to convert, rigid grammar}
-    \label{fig:fast_grammar}
-\end{figure}
-
-Durring that final iteration, it became clear that some grammars were much
-easier to parse than others. Grammars which used typical grammar-school abstractions
-for symbols (nouns, verbs, noun phrases, etc.) were easier to specify but much harder
-to parse. Such grammars (see figure \ref{fig:slow_grammar}).
-let in extranious interpretations that (while gramatically
-correct) bungle the named-entity-recognizer due to the number of possibilities which
-need to be ruled out. For example, ``What scify books has john wane writen?" is rather
-easy to interpret because we can imediately classify `scify' as a genre and `john wane'
-as a name. But the parser is less sure (something which could be tweeked) and erres
-on the the side of caution so it has to check most words as possibly being each type
-of noun (where the grammar allows) and it furthermore needs to check many possible divisions
-between words and needs to consider misspellings. All of this is handled more efficiently 
-if one simply specifies the grammar more explicitly in parser-friendly divisions 
-(see figure \ref{fig:fast_grammar}).
-
+\clearpage
 
 \section{Software Architecture}
 
@@ -375,7 +573,7 @@ This section will explain the design of the system at the highest level.
 One of the goals of this project was to develop a
 highly extensible architecture. There wasn't enough time to cover the
 breadth of questions one would hope for in a mature product - such being
-the nature of research. But I felt it was important to create a practical
+the nature of research. But we felt it was important to create a practical
 working system that could handle a wide range of questions if more
 time was dedicated towards that end.
 
@@ -398,9 +596,31 @@ simply flushing the cached results periodically.
 \label{section:sparql_gen}
 SPARQL is a complex query language with a long, well-documented 
 technical specification\cite{sparql, sparql11}. Generating SPARQL queries can be
-more complicated than simply fitting URIs into a templated string (which was our
-first approach to the problem). Figure \ref{fig:sparql_gen} is a UML diagram of the
-query generation framework we designed with several goals in mind. 
+more complicated than simply fitting URIs into a templated string which was our
+first approach to the problem. In fact, it took us several iterations to realize
+some of the underlying design goals when designing the SPARQL generation framework.
+
+The first (inelegant) solution was to create a separate query-generating
+classes that would handle each type of question on a case-by-case basis.
+These classes did little more than fill in templated strings with URIs and did
+nothing to capture the malleability of natural language.
+Trying to extend the types of questions using that architecture, we found that
+this approach wasn't feasible for a larger application.
+Output from this approach was ugly but workable for simple questions (see the
+appendix for an example of this old output).
+
+In the next iteration, we improved the adaptability of the process by 
+decoupling the query specification from the string generation. 
+That is, we built a module to encapsulate the structure and output of SPARQL
+queries with functions for common query-building tasks (adding triples, 
+applying filters, etc.). Figure \ref{fig:sparql_gen} shows the design that came from
+actually reading through the dense technical documentation and understanding the
+underlying grammar of the SPARQL language.
+
+In that iteration, it took many more lines of code to specify the queries since
+we were explicitly constructing queries rather than relying on manually
+entered strings. But at the same time, it became less error-prone, more
+easily readable, and produced cleaner output.
 
 \begin{figure}[h!]
     \centering
@@ -409,9 +629,9 @@ query generation framework we designed with several goals in mind.
     \label{fig:sparql_gen}
 \end{figure}
 
-First and foremost, query generation is a source of bugs that can be preventeted by a well
+Query generation is a source of bugs that can be prevented by a well
 designed framework. Every manually entered string is a potential source of bugs, the
-arechitecture should reduce the need for manually inputting strings. Since SPARQL isn't
+architecture should reduce the need for manually inputting strings. Since SPARQL isn't
 trivial, these manually entered strings are also a potential source
 of logic errors. Though some logic errors are impossible to prevent using anything short of
 a strong-AI, the proposed framework rigidly defines logical SPARQL code structures which
@@ -425,6 +645,33 @@ encapsulated in a separate module, functions can be coded which more more daftly
 the query rather than just plugging in values. It will aid the development processes in
 much the same way that automated-refactoring tools help coders produce code manually except
 more so.
+
+In the final iteration, we tried to improve the flexibility of the 
+query-generating code by expressing the procedure in terms of re-usable
+functions. Nodes from the parse tree are iterated over in a depth-first
+algorithm which effects changes to the query at only key nodes such
+as particular noun phrase nodes.
+
+During that final iteration, it became clear that some grammars were much
+easier to parse than others. Grammars which used typical grammar-school abstractions
+for symbols (nouns, verbs, noun phrases, etc.) were easier to specify but were very
+slow to parse (see figure \ref{fig:slow_grammar} in the appendix). Such grammars let in 
+extraneous interpretations that (while grammatically
+correct) bungle the named-entity-recognizer due to the number of possibilities which
+need to be ruled out. For example, ``What scify books has john wane written?" is rather
+easy to interpret because we can immediately classify `scify' as a genre and `john wane'.
+It's easy to underestimate how much of that is from context; `scify' could be the
+name of an eccentric author or `john wane' the name of a biography.
+
+The NER's models are lax on purpose to account for these variabilities and
+even names which might not be in the model's sample set: it errs
+on the the side of caution so it has to check most words belonging to each type
+of noun (where the grammar allows). Then it needs to check many possible divisions
+between words and even needs to consider misspellings. All of this is handled more 
+efficiently if one simply specifies the grammar to restrict the possible types 
+within the grammar rather than relying on the NER completely. The grammar
+in figure \ref{fig:grammar} is an example where this design principal was applied.
+
 
 \section{Resolving User Input Names to RDF Entities}
 
@@ -440,7 +687,7 @@ And despite all of these convolutions, a natural language system will need to
 recognize and match these arbitrary instances with the often-sparse naming information
 present in RDF data.
 
-My approach to this problem was to find a string distance function which was
+Our approach to this problem was to find a string distance function which was
 robust to these changes and use that to simply
 find the best match name in $O(n)$ time. Since the names are narrowed down by
 context (using the parser), this was an acceptable solution: we don't need to iterate
@@ -448,14 +695,14 @@ over every single label in the RDF set, just those which belong to the particula
 type of object the user is asking about.
 
 There are a surplus of string comparison functions to choose from \cite{comparison}.
-For my particular application, I have used a variation on the {\em Jaccard index}.
+For our particular application, we have used a variation on the {\em Jaccard index}.
 It is robust to misspellings and reorderings, with the added benefit of being quite efficient.
 The Jaccard index is used in data mining for efficiently comparing long documents,
 but it is comparable to other more complex methods of name comparison \cite{comparison} and 
 anecdotal evidence suggests it will work well here.
 
 Another problem is resolving multiple close names (or even exactly the same name) to a single entity.
-I took a simplistic approach (just asking the user) but I will also discuss other more
+I took a simplistic approach (just asking the user) but we will also discuss other more
 sophisticated possibilities for further research. 
 
 \subsection{Name Standardization and Enumeration}
@@ -463,7 +710,7 @@ Before jumping into the specifics of the name comparison algorithm, there are a 
 to deal with. Names with abbreviations, punctuation, and names with multiple parts can all
 trip up comparison algorithms.
 
-One standardization method I used was to remove punctuation and change all letters to upper case.
+One standardization method we used was to remove punctuation and change all letters to upper case.
 There may be a few edge cases where "John O'neal" isn't the same as "John Oneal",
 but the mistake is acceptable the majority of the time. And such names are so close that they would
 trigger the system to prompt the user for confirmation anyways.
@@ -474,7 +721,7 @@ Using a sufficiently robust string comparison function, these variations will of
 still match the full, multi-part name better than other multi-part names.
 But that's a dubious assumption to rely upon - it's best to tokenize the name and
 include the different partial variations as other names linked with the entity.
-As part of my own system, I simply included the first and last names as variations on
+As part of our own system, we simply included the first and last names as variations on
 the name, excluding the middle name(s).
 
 \subsection{Jaccard Index}
@@ -525,10 +772,26 @@ of parts of the name with any sort of grace.
 This is best demonstrated by example; see figure \ref{fig:lev_comp}.
 
 \begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.9\textwidth,natwidth=1,natheight=1]{imgs/levenshtein_comp.png}
-    \caption{Bad Levenshtein Name Matching}
-    \label{fig:lev_comp}
+\centering
+Levenshtein Matching Results\\
+\begin{tabular}{c|c|c}
+  Distance & String A & String B \\
+\hline
+  14 & `global kirstein investing' & `kirstein global investing' \\
+  13 & `global kirstein investing' & `scherl global investing' \\
+  7 & `kirstein global investing' & `scherl global investing'
+\end{tabular}
+\\
+Jaccard (3-gram) Matching Results\\
+\begin{tabular}{c|c|c}
+  Distance & String A & String B \\
+\hline
+  0.3125 & `global kirstein investing' & `kirstein global investing' \\
+  0.5946 & `global kirstein investing' & `scherl global investing' \\
+  0.5143 & `kirstein global investing' & `scherl global investing'
+\end{tabular}
+\caption{Bad Levenshtein Name Matching}
+\label{fig:lev_comp}
 \end{figure}
 
 Using Levenshtein distance to match 'closest' strings, word 
@@ -615,9 +878,35 @@ an information sensitive comparison function: $\hat{J}(x,y)$:
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.6\textwidth,natwidth=1,natheight=1]{imgs/info_comp.png}
-    \caption{Information Sensitive Name Matching}
-    \label{fig:lev_comp}
+Matching Results without Information Content\\
+\begin{tabular}{c|c|c}
+  Distance & String A & String B \\
+\hline
+  0.6471 & `tom smith' & `john smith' \\
+  0.7692 & `tom smith' & `tom' \\
+  1.0 & `john smith' & `tom'
+\end{tabular}
+\\
+\begin{tabular}{ c}
+Sample Set\\
+\hline
+`adam smith' \\
+`bob smith' \\
+`carl smith' \\
+`dale jones' \\
+`ernest kirstein'
+\end{tabular}
+\\
+Matching Results with Information Content\\
+\begin{tabular}{c|c|c}
+  Distance & String A & String B \\
+\hline
+  0.7296 & `tom smith' & `john smith' \\
+  0.7235 & `tom smith' & `tom' \\
+  1.0 & `john smith' & `tom'
+\end{tabular}
+\caption{Information Sensitive Name Matching}
+\label{fig:lev_comp}
 \end{figure}
 
 The above example shows this comparison in action. In the top comparison,
@@ -789,7 +1078,7 @@ free grammar into a {\em weakly equivalent} top-down parsable grammar shall be r
 {\em compiling} the grammar.
 
 A grammar is formally defined from an ordered collection of production rules.
-My parser uses context-free grammar rules, which are comprised of a
+Our parser uses context-free grammar rules, which are comprised of a
 'head' (the single-symbol left hand side of the production rule), and a 'tail'
 (one or more symbols comprising the right hand side of the production rule).
 
@@ -800,7 +1089,7 @@ choices which produces a parse tree.
 As each of these four procedures produces a weakly equivalent grammar,
 there exists a mapping for any decision list in a compiled grammar
 back into a same-terminal-producing decision list in the pre-compiled (parent) grammar.
-My parser keeps track of these inverse transformation rules as performs
+Our parser keeps track of these inverse transformation rules as performs
 it's compilation procedure so that a compiled grammar's decision list can be easily
 converted to the initial grammar's equivalent decision list. 
 
@@ -955,10 +1244,40 @@ with the same children. Next the $A_{x_p}$ are restructured such that each $C_{A
 is equal to $A_{x_{p-1}} \alpha_p$ where $1 < p$ and $\beta_y \alpha_k$ where $p=1$. The top node of the chain, 
 $A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
 
+\section{Future Work}
+As this project draws to a close, there have been a number of key areas where more work
+could have been done and where this work might lead. 
+Recent works have directed their research towards the portability problem as a key area 
+for reasearch. The portability problem being: the ability to quickly generate or adapt 
+a NLI to a particular semantic dataset or interface. 
+One could say that, although this is obviously
+an important area to push forward, we should also focus on creating interfaces with a
+deeper understanding of their subject matter. NLIs which focus on niche subjects in great
+detail may have more potential to attract casual users to the semantic web than broader
+but less expressive NLIs which may only provide marginal benefits compared with the 
+current internet.
 
+\section{Conclusion}
+The issue with natural language interfaces is the insurmountable scope of the problem. 
+Natural language is too rich to ever be completely documented. Perhaps even more troubling,
+natural language is a moving target; always evolving along with society and the times.
+The lines between languages can be blurred. The lines between dialects even more so.
+And that leads to the obvious question: how can we ever hope to get there?
+
+We do have a fairly solid framework for understanding languages as static constructs
+\cite{chomsky}. We're slowly accumulating knowledge in the semantic web like 
+Tim Berners-Lee imagined, though not yet to the extent that he'd hoped. Perhaps it's
+naive of me to think so, but this seems like the kind of problem where progress
+will be exponential. When we finally do start making serious headway into creating
+natural language interfaces for the semantic web, we'll be able to communicate and
+accumulate knowledge more effectively which will increase the rate at which we'll be
+able to improve natural language interfaces ad infinitum.
+
+Even just in this work we've demonstrated how one could build an in-depth natural
+language interface for a narrow domain - perhaps that narrow domain will be one of 
+NLI development in later work.
 
 \clearpage
-
 \section*{Terms}
 
 \begin{itemize}
@@ -979,6 +1298,67 @@ a tree-representation of the grammatical structure of [an input stream] \cite{an
 \item \textbf{Strongly/Structurally Equivalent (Grammar)}: two grammars are strongly or structurally equivalent
 if they are weakly equivalent and can assign any sentence the same parse tree. \cite{reghizzi}
 \end{itemize}
+
+\clearpage
+\section*{Appendix}
+
+Below example of SPARQL generated by one of the early iterations of our generation process
+which used simple string template filling. You'll notice some constants that are
+not abbreviated where they could be and less standard whitespace.
+
+\begin{verbatim}
+PREFIX dbpprop:<http://dbpedia.org/property/>
+PREFIX dbp:<http://dbpedia.org/resource/>
+PREFIX dbpowl:<http://dbpedia.org/ontology/>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?author ?name
+WHERE{
+    ?author a dbpowl:Writer;
+        rdfs:lable ?name.
+
+    ?book0 a bpowl:Book;
+        dbpowl:author ?author;
+        dbpprop:genre <http://dbpedia.org/resource/High_fantasy>.
+
+
+    ?book1 a bpowl:Book;
+        dbpowl:author ?author;
+        dbpprop:genre <http://dbpedia.org/resource/Science_fiction>.
+
+    FILTER langMatches( lang(?name), "EN" ).
+}
+GROUP BY ?author
+\end{verbatim}
+
+
+A grammar we tried to use that wasn't much good:
+\begin{figure}[h!]
+\setcounter{equation}{0}
+\begin{align}
+S \rightarrow\; & subject\_question \\
+subject\_question \rightarrow\; & \text{WHAT} \; NP \; VP \\
+subject\_question \rightarrow\; & \text{WHAT} \; VP \\
+subject\_question \rightarrow\; & \text{WHO} \; VP \\
+NP \rightarrow\; & Adj \; NP \\
+NP \rightarrow\; & N \; \text{OR} \; N \\
+NP \rightarrow\; & N \; \text{AND} \; N \\
+NP \rightarrow\; & \text{BOTH} \; N \; \text{AND} \; N \\
+NP \rightarrow\; & N\\
+VP \rightarrow\; & \text{HAS} \; NP \; V \\
+VP \rightarrow\; & V \; NP \\
+Adj \rightarrow\; & \text{genre} \\
+N \rightarrow\; & \text{genre} \\
+N \rightarrow\; & \text{author} \\
+N \rightarrow\; & \text{book} \\
+N \rightarrow\; & \text{AUTHOR} \\
+N \rightarrow\; & \text{BOOKS} \\
+V \rightarrow\; & \text{WROTE}
+\end{align}
+
+\caption{More difficult to convert, flexible grammar.}
+\label{fig:slow_grammar}
+\end{figure}
+
 
 \bibliography{thesis}{}
 \bibliographystyle{plain}

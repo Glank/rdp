@@ -24,11 +24,13 @@ class Referent(TripleElement):
     def __init__(self, iri):
         self.iri = iri
     def __repr__(self):
-        return u"<%u>"%self.iri
+        return u"<%s>"%self.iri
     def getRepr(self, namespaces=None):
         if namespaces is None:
             return repr(self)
         return namespaces.minimize(self.iri)
+    def __hash__(self):
+        return hash(repr(self))
 
 class Literal(TripleElement, RawSPARQL):
     pass
@@ -64,6 +66,29 @@ class Binding:
     def inline(self):
         return "(%s AS %r)"%(self.expression, self.asVar)
 
+class Union:
+    def __init__(self, graph_patterns):
+        self._graph_patterns_ = graph_patterns
+    def variables(self):
+        for g in self._graph_patterns_:
+            for v in g.variables():
+                yield v
+    def build(self, context):
+        lines = []
+        first = True
+        tab = context.get('tab','    ')
+        tab_offset = context.get('tab_offset',1)
+        subcontext = context.copy()
+        subcontext['tab_offset'] = tab_offset
+        for graph in self._graph_patterns_:
+            if not first:
+                lines.append(tab*tab_offset+"UNION")
+            lines.append(tab*tab_offset+"{")
+            lines.append(graph.build(subcontext))
+            lines.append(tab*tab_offset+"}")
+            first=False
+        return '\n'.join(lines)
+
 class GraphPattern:
     def __init__(self):
         self._filters_ = []
@@ -71,6 +96,7 @@ class GraphPattern:
         self._triples_ = []
         self._optionals_ = []
         self._bindings_ = []
+        self._unions_ = []
     def _add_triple_(self, triple):
         for e in triple:
             if isinstance(e,Variable):
@@ -78,10 +104,17 @@ class GraphPattern:
         self._triples_.append(triple)
     def _add_optional_(self, optional):
         self._optionals_.append(optional)
-        self._varaibles_.update(optional.variables)
+        self._variables_.update(optional._variables_)
     def _add_binding_(self, binding):
         self._bindings_.append(binding)
         self._variables_.add(binding.asVar)
+    def _add_union_(self, union):
+        for v in union.variables():
+            self._variables_.add(v)
+        self._unions_.append(union)
+    def variables(self):
+        for v in self._variables_:
+            yield v
     def add(self, value):
         if isinstance(value, Triple):
             self._add_triple_(value)
@@ -89,6 +122,8 @@ class GraphPattern:
             self._filters_.append(value)
         elif isinstance(value, GraphPattern):
             self._add_optional_(value)
+        elif isinstance(value, Union):
+            self._add_union_(value)
         elif isinstance(value, Binding):
             self._add_binding_(value)
         elif isinstance(value, Variable):
@@ -120,6 +155,11 @@ class GraphPattern:
                 for triple in triples[1:-1]:
                     lines.append(tab*(tab_offset+1)+triple.predObjOnly(namespaces)+';')
                 lines.append(tab*(tab_offset+1)+triples[-1].predObjOnly(namespaces)+'.')
+        #add unions
+        subcontext = context.copy()
+        subcontext['tab_offset'] = tab_offset
+        for union in self._unions_:
+            lines.append(union.build(subcontext)+'.')
         #add optionals
         subcontext = context.copy()
         subcontext['tab_offset'] = tab_offset
@@ -268,6 +308,12 @@ class SPARQLQuery:
     def addFilter(self, filt):
         assert isinstance(filt, Filter)
         self.clause.where.pattern.add(filt)
+    def addOptional(self, optional):
+        assert isinstance(optional, GraphPattern)
+        self.clause.where.pattern.add(optional)
+    def addUnion(self, union):
+        assert isinstance(union, Union)
+        self.clause.where.pattern.add(union)
     def addAggregateBinding(self, binding):
         assert isinstance(binding, Binding)
         self.clause.where.addBinding(binding)
@@ -313,4 +359,10 @@ if __name__=='__main__':
     ssmods = SolutionSequenceModifiers(order=RawSPARQL('DESC(?books)'), limit=5000)
     query.setSSMods(ssmods)
     query.addOutputs([entity, name, books])
+    g1 = GraphPattern()
+    g1.add(Triple(entity, query.getReferent('rdfs:label1'), name))
+    g2 = GraphPattern()
+    g2.add(Triple(entity, query.getReferent('rdfs:label2'), name))
+    union = Union([g1,g2])
+    query.addUnion(union)
     print query.build()
