@@ -7,21 +7,21 @@
 \contentsline {section}{\numberline {3}Converting Natural Language Questions into \\SPARQL Queries}{8}
 \contentsline {subsection}{\numberline {3.1}Parsing}{9}
 \contentsline {subsection}{\numberline {3.2}Named Entity Recognition}{13}
-\contentsline {subsection}{\numberline {3.3}Resolution}{14}
-\contentsline {subsection}{\numberline {3.4}Generation}{15}
-\contentsline {section}{\numberline {4}Software Architecture}{17}
-\contentsline {subsection}{\numberline {4.1}SPARQL Generation}{18}
-\contentsline {section}{\numberline {5}Resolving User Input Names to RDF Entities}{20}
-\contentsline {subsection}{\numberline {5.1}Name Standardization and Enumeration}{21}
-\contentsline {subsection}{\numberline {5.2}Jaccard Index}{22}
-\contentsline {subsubsection}{\numberline {5.2.1}Comparison with Levenshtein (Edit) Distance}{22}
-\contentsline {subsubsection}{\numberline {5.2.2}Information Content Sensitive Jaccard Index}{23}
-\contentsline {subsection}{\numberline {5.3}Ambiguity}{25}
-\contentsline {section}{\numberline {6}Top-Down Parsing}{26}
-\contentsline {subsection}{\numberline {6.1}Introduction to Top-Down Parsing without Syntax Diagrams}{26}
-\contentsline {subsection}{\numberline {6.2}Compiling a Context Free Grammar for Top Down Parsing}{31}
-\contentsline {subsection}{\numberline {6.3}Effect of Grammar Transformations on Parse Trees}{32}
-\contentsline {subsubsection}{\numberline {6.3.1}Substitution}{33}
-\contentsline {subsubsection}{\numberline {6.3.2}Direct Left Recursion Elimination}{34}
-\contentsline {section}{\numberline {7}Future Work}{36}
-\contentsline {section}{\numberline {8}Conclusion}{36}
+\contentsline {subsection}{\numberline {3.3}Resolution}{15}
+\contentsline {subsection}{\numberline {3.4}Generation}{16}
+\contentsline {section}{\numberline {4}Software Architecture}{18}
+\contentsline {subsection}{\numberline {4.1}SPARQL Generation}{19}
+\contentsline {section}{\numberline {5}Resolving User Input Names to RDF Entities}{22}
+\contentsline {subsection}{\numberline {5.1}Name Standardization and Enumeration}{22}
+\contentsline {subsection}{\numberline {5.2}Jaccard Index}{23}
+\contentsline {subsubsection}{\numberline {5.2.1}Comparison with Levenshtein (Edit) Distance}{24}
+\contentsline {subsubsection}{\numberline {5.2.2}Information Content Sensitive Jaccard Index}{25}
+\contentsline {subsection}{\numberline {5.3}Ambiguity}{27}
+\contentsline {section}{\numberline {6}Top-Down Parsing}{27}
+\contentsline {subsection}{\numberline {6.1}Introduction to Top-Down Parsing without Syntax Diagrams}{28}
+\contentsline {subsection}{\numberline {6.2}Compiling a Context Free Grammar for Top Down Parsing}{33}
+\contentsline {subsection}{\numberline {6.3}Effect of Grammar Transformations on Parse Trees}{34}
+\contentsline {subsubsection}{\numberline {6.3.1}Substitution}{35}
+\contentsline {subsubsection}{\numberline {6.3.2}Direct Left Recursion Elimination}{36}
+\contentsline {section}{\numberline {7}Future Work}{38}
+\contentsline {section}{\numberline {8}Conclusion}{38}

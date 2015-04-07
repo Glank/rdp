@@ -387,11 +387,14 @@ are the same genre as Game of Thrones?" and determines the appropriate parse tre
 corresponds to it.
 
 Given a natural language question, the parser actually produces a number of
-parse trees and selects the `best' (most probable) interpretation. The probability
+parse trees. Each parse tree can be considered an interpretation of the question,
+so the parse then selects the `best' (most probable) interpretation. The probability
 of the interpretation depends on how close the named entities found in 
 the interpretations match the model defined for that entity (see section \ref{ner}). 
-The interpretation goes through the query generation process to see if there are
-any logic conflicts that the grammar cannot see. If an error is thrown generating the
+The probability of the interpretation is estimated by taking the product of the 
+estimated probabilities of all the named entities (again, see section \ref{ner} for
+more details). The interpretation goes through the query generation process to see if 
+there are any logic conflicts that the grammar cannot see. If an error is thrown generating the
 SPARQL, the next best interpretation is used.
 
 The example question's parse tree in figure \ref{fig:parse} shows the parse trees nodes
@@ -406,12 +409,17 @@ This value is explained in more detail in section \ref{ner}.
 \label{ner}
 Natural language names of `named objects' are recognized by a component of the system
 called the `named entity recognizer' \cite{ner1,ner2}. 
-The NER is greatly improved by context from being integrated into the parsing process.
-Still, setting up the NER for a higher level of accuracy requires a bit of preprocessing.
+The NER would be rather poor at prediting the type associated with a given name if that
+were the only information it had to go on. That is why each named entity type is associated
+with a terminal node in the grammar - it gains a great deal of accuracy by narrowing down
+the possible type for a given string using the context the grammar provides.
+Setting up the NER requires a bit of preprocessing:
+lists of natural language names are downloaded from the semantic database using
+manually entered SPARQL queries then compiled into classifier models.
+
 Typically, NERs use some means of machine learning to classify objects within a
 sentence based on parts of speech, word or phrase feature extraction, and other
 rather advanced topics\cite{ner1}. 
-
 For our work, the definition of classes for our named entities was determined by the
 DBPedia ontology. Also, having access to the data, we also have a rather large sample
 set of names for each classification.
@@ -421,12 +429,13 @@ which could give a simple probability measure of, ``Is X string Y classification
 The n-gram classification models were rather simple to implement and worked well 
 with the Jaccard index comparison we use in section \ref{resolution}. We simply
 checked for the absence or presence of n-grams as features and use a naive
-Bayesian classifier over that feature set\cite{bayes}.
+Bayesian classifier over that feature set\cite{bayes} so the same features
+informed both the NER and the resolution process.
 
 Bayesian classification involves calculating the probability of feature results
-(in this case the absense or presens of an n-gram in a string) then using the product
-of all those proabilities as an estimation of the total probability of that string
-occuring in a given set assuming that all features are independent. This is a
+(in this case the absence or presence of an n-gram in a string) then using the product
+of all those probabilities as an estimation of the total probability of that string
+occurring in a given set assuming that all features are independent. This is a
 pretty bold assumption and doesn't generally hold true for an n-gram feature set,
 but it gives a rough estimation which is all that was necessary in this case.
 
@@ -473,9 +482,9 @@ back on the user to select the appropriate name when there is no obvious best
 match.
 
 The resolution process differs from NER name matching in that the NER 
-only determins wether or not a name belongs to a certain type. For instance, the NER
-determins if `John Smith' is an author, but the resolution process will match that
-name to a URI like `http://example.org/john\_smith'. The NER can determine wether
+only determines whether or not a name belongs to a certain type. For instance, the NER
+determines if `John Smith' is an author, but the resolution process will match that
+name to a URI like `http://example.org/john\_smith'. The NER can determine weather
 a name belongs to a set quicker than the resolution process can determine exactly
 which URI matches a name.
 
@@ -505,7 +514,7 @@ There are two named entities in this parse tree, the genre and the author.}
 
 Figure \ref{fig:resolve} shows a case where semi-automatic reasoning is applied.
 For the first named entity, `science fiction' is automatically paired with the
-named entity `dbp:Science\_fiction' because its rdf label, `Science Fiction', is 
+named entity `dbp:Science\_fiction' because its RDF label, `Science Fiction', is 
 considered an exact match using our string comparison function. 
 Notice that it is a relatively poor named-entity match within the statistical model
 used for parsing since it has an information content of 4.6. 
@@ -517,8 +526,10 @@ user is prompted to choose between them.
 \subsection{Generation}
 \label{gen}
 The last step is to actually produce SPARQL queries from the resolved parse trees.
-Being the last step in a complex process, it is highly coupled to the output of the
-previous steps which means that this part needs to be particularly adaptable.
+Being the last step in a complex process, it is tightly coupled to the output of the
+previous steps which means that this part needs to be particularly adaptable to design
+changes. Minor changes to the grammar, adding or removing named entity types, and
+any otherwise insignificant change trickels down to cause problems in this step.
 However, it is difficult to design this generation process due, in part, 
 to the complexity of the SPARQL query language. 
 So, it took several iterations to refine our approach which are described
@@ -600,8 +611,12 @@ parsing seems to be an independent problem from named entity recognition (NER),
 but to achieve better parsing results it was necessary to integrate NER into the
 parser so that semantic context could inform the NER. 
 
-Another design concern was the accessibility of the SPARQL endpoint.
-It would be ideal if the endpoint was always accessible, would accept an unlimited
+Another design concern was the accessibility of the SPARQL endpoint (an online
+interface where a remote server handles SPARQL queries over an RDF database).
+SPARQL endpoints may connect to a large number of RDF databases (each of which is
+a potential point of failure) and our experience has shown that they tend
+to go down more often than other online resources. It would be ideal if the 
+endpoint was always accessible, would accept an unlimited
 number of queries, and would always respond quickly. But in practice, none of
 those ideals are true. As such, the results of certain queries
 (necessary for developing NER models and URI resolution) are cached into local files.
@@ -647,20 +662,22 @@ easily readable, and produced cleaner output.
 
 Query generation is a source of bugs that can be prevented by a well
 designed framework. Every manually entered string is a potential source of bugs, the
-architecture should reduce the need for manually inputting strings. Since SPARQL isn't
-trivial, these manually entered strings are also a potential source
+architecture should reduce the need for manually inputting strings. Since SPARQL is
+complex in and of itself, these manually entered strings are also a potential source
 of logic errors. Though some logic errors are impossible to prevent using anything short of
 a strong-AI, the proposed framework rigidly defines logical SPARQL code structures which
-will aid in understanding and using SPARQL correctly. 
+will aid in producing SPARQL queries with as few bugs as possible. 
 
-It is also difficult to subdivide the task of building a query when that task only
-involves fitting strings into a template. That makes it hard to design a modular system to
-interpret the parse trees which come out of the natural language parser. And it {\em will}
+Another reason to devlop a query-generating framework is that it helps to develop a more
+modular system. Putting strings together is messy. Using a template system to
+fill in URIs means that there is at least one step in the process where every part 
+is coupled to every other part: the point where the values are injected into the template.
+That makes it hard to design a modular system to interpret the parse trees which 
+come out of the natural language parser. And it {\em will}
 be necessary to subdivide that process in a larger, real-world system. With the building
-encapsulated in a separate module, functions can be coded which more more daftly manipulate
+encapsulated in a separate module, functions can be coded which more deftly manipulate
 the query rather than just plugging in values. It will aid the development processes in
-much the same way that automated-refactoring tools help coders produce code manually except
-more so.
+much the same way that automated-refactoring tools help coders produce code manually.
 
 In the final iteration, we tried to improve the flexibility of the 
 query-generating code by expressing the procedure in terms of re-usable
@@ -675,15 +692,16 @@ slow to parse (see figure \ref{fig:slow_grammar} in the appendix). Such grammars
 extraneous interpretations that (while grammatically
 correct) bungle the named-entity-recognizer due to the number of possibilities which
 need to be ruled out. For example, ``What scify books has john wane written?" is rather
-easy to interpret because we can immediately classify `scify' as a genre and `john wane'.
+easy to interpret because we can immediately classify `scify' as a genre and `john wane'
+as an author's name.
 It is easy to underestimate how much of that is from context; `scify' could be the
-name of an eccentric author or `john wane' the name of a biography.
+name of an author or `john wanee the name of a biography.
 
 The NER's models are lax on purpose to account for these variabilities and
-even names which might not be in the model's sample set: it errs
-on the the side of caution so it has to check most words belonging to each type
-of noun (where the grammar allows). Then it needs to check many possible divisions
-between words and even needs to consider misspellings. All of this is handled more 
+even names which might not be in the model's sample set: it will generally accept
+strings as names more often than it will reject them so it has to check most words b
+elonging to each type of noun (where the grammar allows). Then it needs to check many 
+possible divisions between words and even needs to consider misspellings. All of this is handled more 
 efficiently if one simply specifies the grammar to restrict the possible types 
 within the grammar rather than relying on the NER completely. The grammar
 in figure \ref{fig:grammar} is an example where this design principal was applied.
@@ -704,8 +722,8 @@ recognize and match these arbitrary instances with the often-sparse naming infor
 present in RDF data.
 
 Our approach to this problem was to find a string distance function which was
-robust to these changes and use that to simply
-find the best match name in $O(n)$ time. Since the names are narrowed down by
+robust to these changes and use that to simply find the best match name in $O(n)$ time 
+(where $n$ is the number of names). Since the names are narrowed down by
 context (using the parser), this was an acceptable solution: we don't need to iterate
 over every single label in the RDF set, just those which belong to the particular
 type of object the user is asking about.
@@ -715,14 +733,14 @@ For our particular application, we have used a variation on the {\em Jaccard ind
 It is robust to misspellings and reorderings, with the added benefit of being quite efficient.
 The Jaccard index is used in data mining for efficiently comparing long documents,
 but it is comparable to other more complex methods of name comparison \cite{comparison} and 
-anecdotal evidence suggests it will work well here.
+our experience suggests it will work well here.
 
 Another problem is resolving multiple close names (or even exactly the same name) to a single entity.
 I took a simplistic approach (just asking the user) but we will also discuss other more
 sophisticated possibilities for further research. 
 
 \subsection{Name Standardization and Enumeration}
-Before jumping into the specifics of the name comparison algorithm, there are a few trivialities
+Before jumping into the specifics of the name comparison algorithm, there are a few issues
 to deal with. Names with abbreviations, punctuation, and names with multiple parts can all
 trip up comparison algorithms.
 
@@ -763,16 +781,19 @@ In this application, n-grams were constructed to include imaginary pre and post 
 (represented here as '\^{}' and '\$' respectively). So, for instance, the 3-grams of 'cat' are then
 $\{\text{'\^{}\^{}c'}, \text{'\^{}ca'}, \text{'cat'}, \text{'at\$'}, \text{'t\$\$'}\}$. This gives
 significance to the beginning and end of a string when using the Jaccard index with the n-grams.
+We use enough prefix and suffix character so that n-grams start with or end with a single character
+in the string; this gives a bit of additional weight and focus to prefixes and suffixes in the 
+comparison function.
 
 For a distance function, one can use:
 \[d(s_1,s_2) = 1-J(ngrams(s_1),ngrams(s_2))\]
-The Jaccard distance metric is a true metric space for ngrams \cite{data_mining}.
-But it doesn't quite produce a true metric space for string
+The Jaccard distance metric, $d$, is a metric space for ngrams \cite{data_mining}.
+But it doesn't quite produce a true metric space for strings
 (since two different strings can have exactly the same n-grams). Still, it does satisfy
-the triangle inequality \cite{general} and is always non-negative. As such, one could
-conceivably construct an M-tree \cite{mtree} to improve look-up speed. 
-That hasn't been necessary in this research, but then again, this domain might be smaller
-than one might experience in practice.
+the triangle inequality \cite{general} and is always non-negative. So one could
+conceivably construct an M-tree \cite{mtree} (a datastructure which requires these properties)
+to improve look-up speed. That hasn't been necessary in this research, but then again, 
+this domain might be smaller than one might experience in practice.
 
 \subsubsection{Comparison with Levenshtein (Edit) Distance}
 Levenshtein distance (also known as 'edit distance') is a more common fuzzy string comparison algorithm
@@ -826,11 +847,11 @@ But it would be better if the algorithm also noticed things like
 how 'unusual' certain name patterns were. 
 "Tom Smith" might be closer to "John Smith" than "Tom" based purely
 on their Jaccard index, but any reasonable person would pick
-"Tom Smith" and "Tom" to be the closer names because "Smith" is
-such a common surname.
+"Tom Smith" and "Tom" to be the closer names because "Smith" isn't
+the discriminating factor.
 
 In more technical terms, the part of the string "Smith"
-should receive less 'weight' in the comparison function because
+should receive less `weight' in the comparison function because
 it conveys less information. 
 
 Consider the more general form of the Jaccard index \cite{general}:
@@ -838,8 +859,8 @@ Consider the more general form of the Jaccard index \cite{general}:
 J(\vec{x},\vec{y}) = 
 \frac{\sum_i \min(x_i, y_i)}{\sum_i \max(x_i, y_i)}
 \end{align*}
-Where $\vec{x}$ and $\vec{y}$ are large dimensional vectors rather 
-than sets. To help relate it back to the original form, 
+Where $\vec{x}$ and $\vec{y}$ are large dimensional vectors of real numbers
+rather than sets. To help relate it back to the original form, 
 imagine that $\vec{x}$ and $\vec{y}$ are lists
 of counts of all the possible things that could be in the two sets
 (or multisets) $A$ and $B$.
@@ -848,7 +869,7 @@ x_i = count(e_i; A)\\
 e_i \in \{A \cup B \}
 \end{align*}
 
-Now if we want to consider the amount of information each little
+Where $y_i$ is defined similarly for $B$. Now if we want to consider the amount of information each little
 portion of the string contains, we can calculate it
 using the equation laid down by Shannon \cite{shannon}.
 Namely, that the self information of an event is the log of the
@@ -966,10 +987,13 @@ name based on a number of factors:
 \section{Top-Down Parsing}
 Historically, top-down parsers were been coded manually or else generated from 
 a context free grammar specification. \cite{lewis, formal_langs} 
-Coding a RDP manually is tedious, error prone, and difficult to maintain.
+Coding a RDP (recursive decent parser) manually is tedious, error prone, and difficult to maintain.
 Programmatically generating a top-down parser from a grammar
 still isn't ideal - converting a context free grammar into
 a top-down parsable form may not preserve the {\em strong equivalence} of the grammar.
+Two grammars are weakly equivalent if they define the same language (set of possible strings).
+Two grammars are strongly equivalent if they are weakly equivalent and there is a one to one
+corresondance between their parse trees which match equivalent strings. \cite{reghizzi}
 And as a result, parse trees generated by that RDP will not be in the same form
 as they might appear in the initial (non-RD-parsable) grammar, which is often a more 
 natural representation of the desired language \cite{compiler}.
@@ -1098,16 +1122,16 @@ Our parser uses context-free grammar rules, which are comprised of a
 'head' (the single-symbol left hand side of the production rule), and a 'tail'
 (one or more symbols comprising the right hand side of the production rule).
 
-These grammars may be 'compiled' using the four procedures:
+These grammars may be `compiled' using the four procedures:
 factoring, substitution, removing left recursion, and removing useless
-rules. Let 'decision list' define an ordered list of production rule
+rules. Let `decision list' define an ordered list of production rule
 choices which produces a parse tree.
-As each of these four procedures produces a weakly equivalent grammar,
-there exists a mapping for any decision list in a compiled grammar
+As each of these four procedures changes an input grammar into a weakly equivalent 
+output grammar, there exists a mapping for any decision list in a compiled grammar
 back into a same-terminal-producing decision list in the pre-compiled (parent) grammar.
 Our parser keeps track of these inverse transformation rules as performs
-its compilation procedure so that a compiled grammar's decision list can be easily
-converted to the initial grammar's equivalent decision list. 
+its compilation procedure so that a compiled grammar's decision list (the result of
+parsing a string) can be easily converted to the initial grammar's equivalent decision list. 
 
 Take this simple grammar for example:
 \setcounter{equation}{0}
@@ -1165,7 +1189,7 @@ and on their parse trees.
 
 \subsubsection{Substitution}
 
-A grammar, $G$, where substitution can be applied has rules for some nonterminals $A$ and $B$ of the form:
+A grammar, $G$, where substitution can be applied has rules for some non-terminals $A$ and $B$ of the form:
 \begin{align*}
 R_\alpha &= A \rightarrow B \alpha\\
 R_\beta(i) &= B \rightarrow \beta_i
@@ -1209,13 +1233,13 @@ A grammar with direct left recursion, $G$, has rules for some nonterminal $A$ of
 R_\alpha(i) &= A \rightarrow A \alpha_i \\
 R_\beta(j) &= A \rightarrow \beta_j
 \end{align*}
-Where $i \in [1,m]$ and $j \in [1,n]$.
+Where $i \in [1,n]$ and $j \in [1,m]$.
 Let $R_\alpha$ and $R_\beta$ represent the sets of those rules respectively where the notation
 $R_\alpha(1)$ represents $A \rightarrow A \alpha_1$. 
 Such a grammar represents a language which contains substrings of the form:
 \[ S = \beta_y \alpha_{x_1} \alpha_{x_2} ... \alpha_{x_p}...\alpha_{x_{k-1}} \alpha_{x_k}\] 
 where $y \in [1,m]$ and each $x_p \in [1,n]$.
-However, to produce such a substring, the alpha rules need to be followed in reverse order:
+However, to produce such a substring, the $\alpha_*$ rules need to be followed in reverse order:
 \[Prods(S;G) = \{R_\alpha(x_k), R_\alpha(x_{k-1}), ... R_\alpha(x_{p}), ... R_\alpha(x_2), R_\alpha(x_1), R_\beta(y)\}\]
 Where $Prods$ is the function which outputs the production rules from $G$ which generate the substring $S$.
 
@@ -1264,7 +1288,7 @@ $A$, is replaced with $A_{x_k}$. And this process is repeated for each chain.
 As this project draws to a close, there have been a number of key areas where more work
 could have been done and where this work might lead. 
 Recent works have directed their research towards the portability problem as a key area 
-for reasearch. The portability problem being: the ability to quickly generate or adapt 
+for research. The portability problem being: the ability to quickly generate or adapt 
 a NLI to a particular semantic dataset or interface. 
 One could say that, although this is obviously
 an important area to push forward, we should also focus on creating interfaces with a
@@ -1302,17 +1326,18 @@ initial strings, and a finite set of rules... \cite{chomsky} (see Production Rul
 \item \textbf{Context-Free Grammar}: a context free grammar is one which only has production rules whose head is a single nonterminal symbol.
 \cite{compiler, anatomy, formal_langs}
 \item \textbf{Production, Production Rule, Rewrite Rule}: rules of the form $X \rightarrow Y$ where
-$X$ and $Y$ are strings in [a grammar]  \cite{chomsky};
+$X$ and $Y$ are strings in a grammar (ordered lists of symbols of the grammar)  \cite{chomsky};
 define the nonterminal symbols by sequences of terminals and nonterminal symbols \cite{compiler};
 rules which specify how nonterminal symbols may be expanded into new sequences of symbols (terminal or otherwise).
 \item \textbf{Head (Production Rule)}: the left hand side of a production rule
 \item \textbf{Tail (Production Rule)}: the right hand side of a production rule
 \item \textbf{Parse Tree}: an ordered, rooted tree whose nodes are symbols in a context-free grammar where the 
 children of each branch node correspond to the tail of some production rule in said grammar;
-a tree-representation of the grammatical structure of [an input stream] \cite{anatomy}
-\item \textbf{Weakly Equivalent (Grammar)}: two grammars are [weakly] equivalent if they define the same language.\cite{reghizzi}
-\item \textbf{Strongly/Structurally Equivalent (Grammar)}: two grammars are strongly or structurally equivalent
-if they are weakly equivalent and can assign any sentence the same parse tree. \cite{reghizzi}
+a tree-representation of the grammatical structure of an input stream \cite{anatomy}
+\item \textbf{Weakly Equivalent (Grammar)}: two grammars are weakly equivalent if they define the same language.\cite{reghizzi}
+\item \textbf{Strongly/Structurally Equivalent (Grammar)}: two grammars are strongly equivalent if they are weakly equivalent and there is a one to one
+corresondance between their parse trees which match equivalent strings. \cite{reghizzi}
+ \cite{reghizzi}
 \end{itemize}
 
 \clearpage
