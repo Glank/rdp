@@ -337,19 +337,19 @@ words which are gramatically correct and incorrect (you can't count on users to 
 perfect English). ``Who has wrote X,'' and ``Who done written X'' are both matched in this
 grammar.
 
-For another example, if we followed the rules \ref{gram:subj}, \ref{gram:auths}, 
-\ref{gram:comp_auths} then our strings would progress as follows: 
-``$S$'', ``$subject\_question$'', ``$authors\_request$'', 
-``WHAT $general\_authors$ HAS WROTE $general\_books$''. Rule \ref{gram:auths} told us to 
-replace $S$ with $subject\_question$. Rule \ref{gram:subj} told us to replace
-$subject\_questions$ with $authors\_request$. Nodes that get replaced like this
-are called `non-terminal'. We can apply two more rules for each of our remaining
-non-terminals: $general\_authors$ and $general\_books$. If we chose the rules
-\ref{gram:comp_gen_auths} and \ref{gram:comp_gen_books} then we end up with the
-string ``WHAT genre AUTHOR HAS WROTE genre BOOKS''. This question might match the
-real natural language question, ``What science fiction author has written 
-high fantasy novels?'' Notice that, in the grammar, non-terminal nodes are
-in italics.
+For another example, if we followed the rules \ref{gram:subj}, \ref{gram:books}, 
+and \ref{gram:sim_books} then our strings would progress as follows: 
+``$S$'', ``$subject\_question$'', ``$books\_request$'', 
+then ``WHAT $general\_books$ HAS author WROTE''. 
+Rule \ref{gram:subj} told us to 
+replace $S$ with $subject\_question$. Rule \ref{gram:books} told us to replace
+$subject\_questions$ with $books\_request$. Nodes that get replaced like this
+are called `non-terminal'. We can apply another rule for the remaining
+non-terminal: $general\_books$. If we chose the rule
+\ref{gram:simp_gen_books} then we end up with the
+string, ``WHAT BOOKS HAS author WROTE''. This question might match the
+real natural language question, ``What novels has Heinline written?'' 
+Notice that, in the grammar, non-terminal nodes are in italics.
 
 Grammar rules are specified for each type of question and each descriptive sentence
 fragment which corresponds to some SPARQL generation abstraction (see 
@@ -408,7 +408,7 @@ in a tabbed hierarchy. On the left are the names of the nodes and to
 the right of each name you'll see some representation from the sentence that 
 corresponds with the node. Named entity nodes also have a number which is the
 {\em information content} of that node (an inverse log of the probability) which is higher
-the further away a string is from the expect average in that named entity class. Both
+the further away a string is from the expected average in that named entity class. Both
 of the information content values for the named entities in figure \ref{fig:parse} are
 quite good (low values) and indicate a strong match. This value is explained in more detail in section \ref{ner}.
 
@@ -528,11 +528,13 @@ For the first named entity, ``science fiction'' is automatically paired with the
 named entity `dbp:Science\_fiction' because its RDF label, `Science Fiction', is 
 considered an exact match using our string comparison function. 
 Notice that it is a relatively poor named-entity match within the statistical model
-used for parsing since it has an information content of 4.6. 
-The name ``E. A. Poe'' is another mater. It is
-very close to two author names using the Jaccard index comparison function; both
-``Edgar Alen Poe'' and ``Michael Poe'' are equally close matches by this metric so the
-user is prompted to choose between them.
+used for parsing since it has an information content of 4.6. It may seem odd that this
+is a poor match even though it is an exact match using our string comparrison function:
+this happens because the set of possible grammars is small so it is not an ideal
+candidate for our name classification method which does best with large sets of names.
+The name ``E. A. Poe'' is another mater. It is very close to two author names using the 
+Jaccard index comparison function; both ``Edgar Alen Poe'' and ``Michael Poe'' are 
+equally close matches by this metric so the user is prompted to choose between them.
 
 \subsection{Generation}
 \label{gen}
